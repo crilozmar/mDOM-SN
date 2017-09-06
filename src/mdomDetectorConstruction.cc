@@ -1243,7 +1243,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 		
 // ------------------------- IceCube glass --------------------------------------------------
 	// values taken from DOMINANT simulation code from Chiba
-	G4double IceCubeGlassPhotonEnergy[36] = { 
+	G4double IceCubeGlassPhotonEnergy[37] = { 
 		
 		hc_eVnm / 250.0*eV,
 		hc_eVnm / 270.0*eV,
@@ -1283,7 +1283,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 		hc_eVnm / 730.0*eV
 	};
 
-	G4double IceCubeGlassAbsLen[36] = {
+	G4double IceCubeGlassAbsLen[37] = {
 		
 		0.0*mm,
 		0.0*mm,
