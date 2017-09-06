@@ -1,0 +1,1 @@
+cmake -DGeant4_DIR=/usr/local/lib/Geant4-10.1.0 ../

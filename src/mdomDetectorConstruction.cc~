@@ -1,0 +1,493 @@
+#include "mdomDetectorConstruction.hh"
+#include "G4UnionSolid.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4Material.hh"
+#include "G4Tubs.hh"
+#include "G4Sphere.hh"
+#include "G4Orb.hh"
+#include "G4Polycone.hh"
+#include "G4Ellipsoid.hh"
+#include "G4Cons.hh"
+#include "G4LogicalVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4PVParameterised.hh"
+#include "G4SDManager.hh"
+#include "G4UserLimits.hh"
+#include "G4VisAttributes.hh"
+#include "G4Colour.hh"
+#include "G4ios.hh"
+#include "G4NistManager.hh"
+#include <sstream>
+#include <iostream>
+#include "G4LogicalBorderSurface.hh"
+#include "G4LogicalSkinSurface.hh"
+#include "G4OpBoundaryProcess.hh"
+#include "G4Transform3D.hh"
+//since Geant4.10: include units manually
+#include "G4SystemOfUnits.hh"
+
+extern G4String ghitsfilename;
+extern G4String	gabsfilename;
+extern G4String	greffilename;
+extern G4String	gscatfilename;
+extern G4String	gdetectortype;
+extern double		gworldsize;
+extern std::vector<double> readColumnDouble (G4String fn, int col);
+extern std::vector<G4String> explode (G4String s, char d);
+
+// defining mDOM dimensions:
+	G4double GlasOutRad = 0.5*356*mm;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
+	G4double GlasThick = 15*mm;			// maximum glass thickness
+	G4double GlasInRad = GlasOutRad - GlasThick;
+	G4double CylHigh = 25*mm;			// height of cylindrical part of glass half-vessel; in this case no cylindrical glass part! Steel ring only.
+	G4double GelThick = 2*mm;			// distance between inner glass surface and holding structure, filled with gel
+	G4double GelPMT = 2*mm;				// distance between inner glass surface and tip of PMTs
+	G4double PMToffset = 23.3*mm;		// distance from PMT front to PMT center of mass = dz of PMT front ellipsoid
+	G4double RefConeDZ = 15*mm;			// half-height of reflector
+	G4double MPMTzoffset = 10*mm;		// z-offset of middle PMT circles w.r.t. center of glass sphere
+	G4double MPMTroffset = 2.6*mm;		// middle PMT circles are slightly further out due to MPMTzoffset
+//	hard-coded limits
+const double PHOTON_NRG_MAX = (1240./290)*eV;
+const double PHOTON_NRG_MIN = (1240./720)*eV;
+
+mdomDetectorConstruction::mdomDetectorConstruction()
+	:World_solid(0), World_logical(0), World_physical(0)
+{}
+
+mdomDetectorConstruction::~mdomDetectorConstruction()
+{}
+
+G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
+//	declare variables, including visualisation attributes
+	int i,k;
+	double pi = M_PI;
+	std::stringstream volname, volname2;
+	
+//	visualisation properties only, no effect on actual optics	
+ 	G4VisAttributes* Glass_vis= new G4VisAttributes(G4Colour(0.7,0.7,0.8,0.2));
+ 	G4VisAttributes* Gel_vis= new G4VisAttributes(G4Colour(0.45,0.5,0.35,0.2));
+	G4VisAttributes* Alu_vis= new G4VisAttributes(G4Colour(0.8,0.8,0.9,1.0));
+	G4VisAttributes* Absorber_vis= new G4VisAttributes(G4Colour(0.2,0.2,0.2,1.0));
+	G4VisAttributes* PhotoCathode_vis= new G4VisAttributes(G4Colour(1.0,1.0,0.0,0.3));
+	G4VisAttributes* World_vis= new G4VisAttributes(G4Colour(1.0,1.0,1.0,1.0));
+
+	std::ifstream	infile;
+	std::vector<G4String> n;
+	G4String l2, l3;
+
+    //	G4LogicalBorderSurface* optical_border_surface_container;
+
+	G4Transform3D transformers;
+	G4ThreeVector transort;
+
+	G4OpticalSurface* RefCone_optical= new G4OpticalSurface("RefCone optical");
+	RefCone_optical->SetModel(unified);
+	RefCone_optical->SetType(dielectric_metal);
+	RefCone_optical->SetFinish(polished);
+	G4double RefCone_nrg[2] = {PHOTON_NRG_MIN, PHOTON_NRG_MAX} ; 
+	G4double RefCone_refl[2] = { 0.92, 0.92 };
+	G4MaterialPropertiesTable *RefConeMPT = new G4MaterialPropertiesTable();
+	RefConeMPT->AddProperty("REFLECTIVITY", RefCone_nrg, RefCone_refl,2);
+	RefCone_optical->SetMaterialPropertiesTable(RefConeMPT);
+
+	G4OpticalSurface* optical_water_glass = new G4OpticalSurface("water-glass");
+	optical_water_glass->SetModel(unified);
+	optical_water_glass->SetType(dielectric_dielectric);
+	optical_water_glass->SetFinish(polished);
+
+//--------- Material definition ---------
+
+	G4NistManager* MatDatBase = G4NistManager::Instance();
+	double ambient_temperature = (-35+273.15)*kelvin;
+	double ambient_pressure = 200*bar;
+	
+	G4Material* Mat_spice = new G4Material("Ice", 0.9*g/cm3, MatDatBase->FindOrBuildMaterial("G4_WATER"), kStateSolid, ambient_temperature, ambient_pressure);
+	
+	G4Material* Mat_Vacuum = new G4Material("Vacuum", 0.3*1.290*mg/cm3, 1, kStateGas, ambient_temperature, 0.3*bar);
+	Mat_Vacuum->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_AIR"), 100.0*perCent);
+
+	G4Material* Mat_Absorber = new G4Material("Absorber Black Paint", 1.0*g/cm3, 1, kStateSolid, ambient_temperature);
+	Mat_Absorber->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_C"), 100.0*perCent);
+
+	G4Material* Mat_Reflector = new G4Material("Reflective Layer", 2.7*g/cm3, 1, kStateSolid, ambient_temperature);
+	Mat_Reflector->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Al"), 100.0*perCent);
+		
+	G4Material* Mat_Vitrovex_Glass = new G4Material("Vitrovex Glass", 2.302*g/cm3, 2, kStateSolid, ambient_temperature, ambient_pressure);
+	Mat_Vitrovex_Glass->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Si"), 0.4674349);
+ 	Mat_Vitrovex_Glass->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_O"), 0.5325651);
+
+	G4Material* Mat_Tube_Glass = new G4Material("Tube Glass", 2.302*g/cm3, 2, kStateSolid, ambient_temperature);
+	Mat_Tube_Glass->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Si"), 0.4674349);
+	Mat_Tube_Glass->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_O"), 0.5325651);
+	
+	G4Material* Mat_Gel = new G4Material("Optical Gel", 2.302*g/cm3, 2, kStateSolid, ambient_temperature);
+	Mat_Gel->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Si"), 0.4674349);
+	Mat_Gel->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_O"), 0.5325651);
+	
+	G4Material* Mat_BiAlkali = new G4Material("Photocathode", 2.0*g/cm3, 3, kStateSolid, ambient_temperature);
+	Mat_BiAlkali->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Sb"), 0.5);
+	Mat_BiAlkali->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_K"), 0.35);
+	Mat_BiAlkali->AddMaterial(MatDatBase->FindOrBuildMaterial("G4_Cs"), 0.15);
+
+// ------------ Generate & Add Material Properties Table ------------
+	std::vector<double> absnrg;
+	std::vector<double> abslen;
+	std::vector<double> refnrg;
+	std::vector<double> refval;
+	absnrg.push_back(290);
+	absnrg.push_back(700);
+	abslen.push_back(100000);
+	abslen.push_back(100000);
+
+	for (unsigned int u = 0; u < absnrg.size(); u++) {
+		if (absnrg.at(u) < 100) absnrg[u] = absnrg.at(u)*eV;
+		else absnrg[u] = 1240/absnrg.at(u)*eV;
+		abslen[u] = abslen.at(u)*m;
+	}
+	
+	if (absnrg.at(0) > absnrg.at(absnrg.size()-1)) {
+		std::reverse(absnrg.begin(), absnrg.end());
+		std::reverse(abslen.begin(), abslen.end());
+	}
+
+	refnrg = readColumnDouble(greffilename, 1);
+	refval = readColumnDouble(greffilename, 2);
+	if (refval.size() != refnrg.size() || refval.size() == 0) G4cout << G4endl<<G4endl<<"critical error with refractive index file"<<G4endl<<G4endl;
+	for (unsigned int u = 0; u < refnrg.size(); u++) {
+		if (refnrg.at(u) < 100) refnrg[u] = refnrg.at(u)*eV;
+		else refnrg[u] = 1240/refnrg.at(u)*eV;
+	}
+	if (refnrg.at(0) > refnrg.at(refnrg.size()-1)) {
+		std::reverse(refnrg.begin(), refnrg.end());
+		std::reverse(refval.begin(), refval.end());
+	}
+
+// Mie scattering
+	const G4int NUMENTRIES_ICE = 60;
+	G4double ENERGY_spice[NUMENTRIES_ICE] = {
+		1.56962*eV, 1.58974*eV, 1.61039*eV, 1.63157*eV,
+		1.65333*eV, 1.67567*eV, 1.69863*eV, 1.72222*eV,
+		1.74647*eV, 1.77142*eV, 1.7971 *eV, 1.82352*eV,
+		1.85074*eV, 1.87878*eV, 1.90769*eV, 1.93749*eV,
+		1.96825*eV, 1.99999*eV, 2.03278*eV, 2.06666*eV,
+		2.10169*eV, 2.13793*eV, 2.17543*eV, 2.21428*eV,
+		2.25454*eV, 2.29629*eV, 2.33962*eV, 2.38461*eV,
+		2.43137*eV, 2.47999*eV, 2.53061*eV, 2.58333*eV,
+		2.63829*eV, 2.69565*eV, 2.75555*eV, 2.81817*eV,
+		2.88371*eV, 2.95237*eV, 3.02438*eV, 3.09999*eV,
+		3.17948*eV, 3.26315*eV, 3.35134*eV, 3.44444*eV,
+		3.54285*eV, 3.64705*eV, 3.75757*eV, 3.87499*eV,
+		3.99999*eV, 4.13332*eV, 4.27585*eV, 4.42856*eV,
+		4.59258*eV, 4.76922*eV, 4.95999*eV, 5.16665*eV,
+		5.39129*eV, 5.63635*eV, 5.90475*eV, 6.19998*eV
+	};
+  
+	G4double MIE_spice[NUMENTRIES_ICE] = {
+			// 167.4*m, 158.7*m, 150  *m,
+			// 143.5*m, 135.2*m, 128.4*m,
+			// 121.3*m, 115.5*m, 108.5*m,
+			// 102.8*m, 97.35*m, 91.86*m,
+			// 86.33*m, 81.79*m, 76.42*m,
+			// 71.46*m, 67.29*m, 63.36*m,
+			// 59.25*m, 55.61*m, 51.24*m,
+			// 48.00*m, 45.87*m, 42.94*m,
+			// 39.39*m, 36.50*m, 33.68*m,
+			// 31.41*m, 29.30*m, 26.03*m,
+			// 24.42*m, 22.36*m, 20.88*m,
+			// 19.07*m, 17.16*m, 16.45*m,
+			// 14.38*m, 13.46*m, 12.33*m,
+			// 10.70*m, 9.416*m, 8.407*m,
+			// 8.711*m, 7.470*m, 6.927*m,
+			// 5.429*m, 5.425*m, 4.467*m,
+			// 3.210*m, 3.413*m, 3.937*m,
+			// 2.746*m, 2.907*m, 1.588*m,
+			// 1.064*m, 1.710*m, 1.004*m,
+			// 1.528*m, 0.89666*m, 0.6861063*m
+                           
+	};
+	// gforward, gbackward, forward backward ratio
+	G4double MIE_spice_const[3]={0.99,0.99,0.8};
+	
+//	Generate static (hard-wired) material properties
+	
+	G4MaterialPropertiesTable* proptable_spice = new G4MaterialPropertiesTable();
+	proptable_spice->AddProperty("RINDEX",       &refnrg[0],&refval[0],refnrg.size());
+ 	proptable_spice->AddProperty("ABSLENGTH",    &absnrg[0],&abslen[0],absnrg.size());
+	proptable_spice->AddProperty("MIEHG",ENERGY_spice,MIE_spice,NUMENTRIES_ICE)->SetSpline(true);
+	proptable_spice->AddConstProperty("MIEHG_FORWARD",MIE_spice_const[0]);
+	proptable_spice->AddConstProperty("MIEHG_BACKWARD",MIE_spice_const[1]);
+	proptable_spice->AddConstProperty("MIEHG_FORWARD_RATIO",MIE_spice_const[2]);
+	Mat_spice->SetMaterialPropertiesTable(proptable_spice);
+	
+	G4double BiAlkaliPhotonEnergy[2] = {PHOTON_NRG_MIN, PHOTON_NRG_MAX};
+	G4double BiAlkaliAbsLen[2] = {1*mm, 1*mm};
+	G4double BiAlkaliRefIndex[2] = {4.,4.};
+	G4MaterialPropertiesTable* proptable_BiAlkali = new G4MaterialPropertiesTable();
+	proptable_BiAlkali->AddProperty("ABSLENGTH", BiAlkaliPhotonEnergy, BiAlkaliAbsLen, 2);
+	proptable_BiAlkali->AddProperty("RINDEX", BiAlkaliPhotonEnergy, BiAlkaliRefIndex, 2);
+	Mat_BiAlkali->SetMaterialPropertiesTable(proptable_BiAlkali);
+
+	G4double GlassPhotonEnergy[34] = { PHOTON_NRG_MIN,
+		2.034*eV, 2.068*eV, 2.103*eV, 2.139*eV,
+		2.177*eV, 2.216*eV, 2.256*eV, 2.298*eV,
+		2.341*eV, 2.386*eV, 2.433*eV, 2.481*eV,
+		2.532*eV, 2.585*eV, 2.640*eV, 2.697*eV,
+		2.757*eV, 2.820*eV, 2.885*eV, 2.954*eV,
+		3.026*eV, 3.102*eV, 3.181*eV, 3.265*eV,
+		3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,
+		3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV, PHOTON_NRG_MAX
+	};
+	G4double GlassAbsLen[34] = { 0.0*m,
+		0.53*m,0.54*m,0.58*m,0.65*m,0.75*m,0.73*m,0.65*m,0.63*m,0.6*m,
+		0.6*m,0.58*m,0.58*m,0.5*m,0.42*m,0.4*m,0.38*m,0.35*m,0.36*m,0.36*m,
+		0.35*m,0.45*m,0.59*m,0.61*m,0.6*m,0.3*m,0.55*m,0.4*m,0.2*m,0.1*m,
+		0.05*m,0.03*m,0.01*m, 0.0*m
+	};
+	G4double GlassRInd[34];
+	for (i = 0; i < 34; i++) { GlassRInd[i] = 1.47; }
+	G4MaterialPropertiesTable* proptable_glass = new G4MaterialPropertiesTable();
+	proptable_glass->AddProperty("RINDEX", GlassPhotonEnergy,GlassRInd,34);
+ 	proptable_glass->AddProperty("ABSLENGTH", GlassPhotonEnergy,GlassAbsLen,34);
+	Mat_Tube_Glass->SetMaterialPropertiesTable(proptable_glass);
+	
+// values provided by Mr. Pausch from Nautilus (see VitrovexRefIndex.cfg)
+	G4double VitrovexGlassRIndPhotonEnergy[15] = {
+	  PHOTON_NRG_MAX,
+	  (1240./334.15)*eV,
+	  (1240./365.01)*eV,
+	  (1240./404.66)*eV,
+	  (1240./435.83)*eV,
+	  (1240./479.99)*eV,
+	  (1240./486.13)*eV,
+	  (1240./546.07)*eV,
+	  (1240./587.56)*eV,
+	  (1240./589.29)*eV,
+	  (1240./632.80)*eV,
+	  (1240./643.85)*eV,
+	  (1240./656.27)*eV,
+	  (1240./706.52)*eV,
+	  PHOTON_NRG_MIN
+	};
+// value for PHOTON_NRG_MAX extrapolated, value for PHOTON_NRG_MIN interpolated ("by eye" only...) 
+	G4double VitrovexGlassRInd[15] = {
+	  1.4,
+	  1.494,
+	  1.489,
+	  1.483,
+	  1.480,
+	  1.477,
+	  1.476,
+	  1.473,
+	  1.471,
+	  1.471,
+	  1.470,
+	  1.470,
+	  1.469,
+	  1.468,
+	  1.467
+	};
+	G4MaterialPropertiesTable* proptable_Vitrovex_Glass = new G4MaterialPropertiesTable();
+	proptable_Vitrovex_Glass->AddProperty("RINDEX", VitrovexGlassRIndPhotonEnergy,VitrovexGlassRInd,15);
+ 	proptable_Vitrovex_Glass->AddProperty("ABSLENGTH", GlassPhotonEnergy,GlassAbsLen,34);
+	Mat_Vitrovex_Glass->SetMaterialPropertiesTable(proptable_Vitrovex_Glass);
+	
+	G4double VacuumPhotonEnergy[2] = {PHOTON_NRG_MIN, PHOTON_NRG_MAX};
+	G4double VacuumRidx[2] = {1.0001, 1.0001};
+	G4MaterialPropertiesTable* proptable_vacuum = new G4MaterialPropertiesTable();
+	proptable_vacuum->AddProperty("RINDEX", VacuumPhotonEnergy, VacuumRidx, 2);
+	Mat_Vacuum->SetMaterialPropertiesTable(proptable_vacuum);
+
+	G4double GelPhotonEnergy[18] = { PHOTON_NRG_MIN,
+		2.034*eV,2.13*eV,2.18*eV,2.22*eV,2.25*eV,2.3*eV,
+		2.34*eV, 2.43*eV, 2.53*eV, 2.67*eV, 2.79*eV,
+		3.1*eV, 3.28*eV, 3.56*eV, 3.77*eV,4.136*eV, PHOTON_NRG_MAX
+	};
+	G4double GelAbsLen[18] = { 0*m,
+		.975*m, .975*m, .966*m, .935*m, .890*m, .898*m, 
+		.876*m, .844*m, .786*m, .727*m,  .674*m, 
+		.566*m, .485*m, .360*m, .220*m, .220*m, 0*m
+	};
+	G4double GelRInd[18];
+	for (i = 0; i < 18; i++) { GelRInd[i] = 1.404; }
+	G4MaterialPropertiesTable* proptable_gel = new G4MaterialPropertiesTable();
+	proptable_gel->AddProperty("RINDEX", GelPhotonEnergy,GelRInd,18);
+ 	proptable_gel->AddProperty("ABSLENGTH", GelPhotonEnergy,GelAbsLen,18);
+	Mat_Gel->SetMaterialPropertiesTable(proptable_gel);
+
+// Print all the materials defined.
+//	G4cout << *(G4Material::GetMaterialTable());
+
+  ////////////////
+ //  Geometry  //
+////////////////
+
+	World_solid = new G4Orb("World",gworldsize*m);
+	World_logical = new G4LogicalVolume(World_solid, Mat_spice, "World_log", 0, 0, 0);
+	G4RotationMatrix* rot;
+
+//	R12199: hemispherical 80 mm diameter
+//	ellipsoid for front half, cylinder for back
+//	z-semiaxis: 23.3mm, x,y: 80mm
+	G4ThreeVector PMT80_ort_1;
+	G4RotationMatrix* PMT80_rot_1 = new G4RotationMatrix();
+	PMT80_ort_1 = G4ThreeVector(0,0,-(95-23.3)*0.5*mm);
+
+	PMT80_solid_1 = new G4Ellipsoid("PMT80 solid bulb", 40*mm, 40*mm, 23.3*mm);
+	PMT80_solid_2 = new G4Tubs("PMT80 solid bulk", 0.0, 0.5*51.9*mm, (95-23.3)*0.5*mm, 0, 2*pi);
+	PMT80_tube_solid = new G4UnionSolid("PMT80 tube", PMT80_solid_1, PMT80_solid_2, PMT80_rot_1, PMT80_ort_1);
+	PMT80_tube_logical = new G4LogicalVolume(PMT80_tube_solid, Mat_Tube_Glass, "PMT 80 tube");
+
+// 	PC80_solid;
+	G4Ellipsoid* PC80_solid;
+	PC80_solid = new G4Ellipsoid("PC80 solid", 38*mm, 38*mm, 21.3*mm,0*mm,21.3*mm);
+	PC80_logical = new G4LogicalVolume(PC80_solid, Mat_BiAlkali, "Photocathode 80mm logical");
+	PC80_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), PC80_logical, "80mm photocathode physical", PMT80_tube_logical, false, 0);
+
+//	Glass
+	GlassSphereTop_solid = new G4Sphere("GlassSphereTop solid", 0, GlasOutRad, 0, 2*pi, 0, 0.51*pi);
+	GlassSphereBottom_solid = new G4Sphere("GlassSphereBottom solid", 0, GlasOutRad, 0, 2*pi, 0.49*pi, pi);
+	GlassCylinder_solid = new G4Tubs("GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+	G4UnionSolid* temp_union = new G4UnionSolid("temp", GlassCylinder_solid, GlassSphereTop_solid, transformers);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+	Glass_solid = new G4UnionSolid("OM glass body", temp_union, GlassSphereBottom_solid, transformers);
+
+//  Gel
+	GelSphereTop_solid = new G4Sphere("GelSphereTop solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0, 0.51*pi);
+	GelSphereBottom_solid = new G4Sphere("GelSphereBottom solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0.49*pi, pi);
+	GelCylinder_solid = new G4Tubs("GelCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+	G4UnionSolid* temp_union2 = new G4UnionSolid("temp2", GelCylinder_solid, GelSphereTop_solid, transformers);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+	Gel_solid = new G4UnionSolid("gel body", temp_union2, GelSphereBottom_solid, transformers);
+	
+//  PMT TubeHolder from "foam" primitives & cutting "nests" for PMTs later
+	G4Sphere* FoamSphereTop_solid = new G4Sphere("FoamSphereTop solid", 0, GlasOutRad - GlasThick - GelThick, 0, 2*pi, 0, 0.51*pi);
+	G4Sphere* FoamSphereBottom_solid = new G4Sphere("FoamSphereBottom solid", 0, GlasOutRad - GlasThick - GelThick, 0, 2*pi, 0.49*pi, pi);
+	G4Tubs* FoamCylinder_solid = new G4Tubs("FoamCylinder solid", 0, GlasOutRad - GlasThick - GelThick, CylHigh , 0, 2*pi);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+	G4UnionSolid* Foam_TempUnion_solid = new G4UnionSolid("Foam TempUnion solid", FoamCylinder_solid, FoamSphereTop_solid, transformers);
+	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(CylHigh )));
+	G4UnionSolid* Foam_solid = new G4UnionSolid("Foam solid", Foam_TempUnion_solid, FoamSphereBottom_solid, transformers);
+
+//	Reflective cones for better "beaming" of angular acceptance (RefCone)
+	RefConeNestCone_solid = new G4Cons("RefConeNestCone", 0, 42*mm, 0, (42+2*23.3)*mm, 23.3*mm, 0, 2*pi);
+	RefConeNest_solid = new G4UnionSolid("RefConeNest", PMT80_tube_solid, RefConeNestCone_solid, 0, G4ThreeVector(0,0,23.3*mm));
+    
+//	cone type1 for spherical part
+	RefConeBasic_solid = new G4Cons("RefConeBasic", 41.5*mm, 42*mm, 41.5*mm+2*RefConeDZ, 42*mm+2*RefConeDZ, RefConeDZ, 0, 2*pi);
+    RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid, 0, G4ThreeVector(0,0,-(GlasOutRad-GlasThick-GelPMT-PMToffset+RefConeDZ)));
+
+// Producing PMT & RefCone coordinates
+	double PMT_theta[99], PMT_phi[99], PMT_x[99], PMT_y[99], PMT_z[99], RefCone_x[99], RefCone_y[99], RefCone_z[99]; 
+	G4double PMT_rho;
+	G4double RefCone_rho;
+	G4double PMT_z_offset;
+	G4double PMT_r;
+	G4double RefCone_r;
+	
+	for (i = 0; i <= 23; i++) {
+	  PMT_r = GlasInRad - GelPMT - PMToffset;		// radius for PMT positioning
+	  RefCone_r = GlasInRad - GelPMT - PMToffset + RefConeDZ;	// radius for RefCone positioning
+	  if (i>=0 && i<=3){
+	    PMT_theta[i]=33.0*deg;
+	    PMT_phi[i]=i*90.0*deg;
+	    PMT_z_offset = CylHigh;
+	  }
+	  if (i>=4 && i<=11){
+	    PMT_theta[i]=72.0*deg;
+	    PMT_phi[i]=(22.5+(i-4)*45.0)*deg;
+	    PMT_z_offset = CylHigh - MPMTzoffset;
+	    PMT_r += MPMTroffset;
+   	    RefCone_r += MPMTroffset;
+	  }
+	  if (i>=12 && i<=19){
+	    PMT_theta[i]=108.0*deg;
+	    PMT_phi[i]=(i-12)*45.0*deg;
+	    PMT_z_offset = - CylHigh + MPMTzoffset;
+  	    PMT_r += MPMTroffset;
+  	    RefCone_r += MPMTroffset;
+	  }
+	  if (i>=20 && i<=23){
+	    PMT_theta[i]=147.0*deg;
+	    PMT_phi[i]=(22.5+(i-20)*90.0)*deg;
+	    PMT_z_offset = - CylHigh;
+	  }
+	  
+//	  G4cout << i << " " << PMT_theta[i] << " " << PMT_phi[i] << G4endl;
+	  
+	  PMT_rho = PMT_r * sin(PMT_theta[i]);
+	  PMT_x[i] = PMT_rho * cos(PMT_phi[i]);
+	  PMT_y[i] = PMT_rho * sin(PMT_phi[i]);
+	  PMT_z[i] = PMT_r * cos(PMT_theta[i]) + PMT_z_offset;
+	  
+	  RefCone_rho = RefCone_r * sin(PMT_theta[i]);
+	  RefCone_x[i] = RefCone_rho * cos(PMT_phi[i]);
+	  RefCone_y[i] = RefCone_rho * sin(PMT_phi[i]);
+	  RefCone_z[i] = RefCone_r * cos(PMT_theta[i]) + PMT_z_offset;
+	  
+	}	  
+
+ //Cutting the PMT nests from foam...
+	for (k = 0; k <=23; k++) {
+		rot = new G4RotationMatrix();
+		rot->rotateY(PMT_theta[k]);
+		rot->rotateZ(PMT_phi[k]);
+		transformers = G4Transform3D(*rot, G4ThreeVector(PMT_x[k],PMT_y[k],PMT_z[k]));
+		if (k==0){
+			TubeHolder_solid = new G4SubtractionSolid("TubeHolder solid", Foam_solid, RefConeNest_solid, transformers);
+		} 		
+		else { 
+			TubeHolder_solid = new G4SubtractionSolid("TubeHolder solid", TubeHolder_solid, RefConeNest_solid, transformers);
+		}
+	}
+	
+//  Placing da stuff...	
+	rot = new G4RotationMatrix();
+
+	Glass_logical = new G4LogicalVolume (Glass_solid, Mat_Vitrovex_Glass, "Glass_log");
+	Glass_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), Glass_logical, "Glass_phys", World_logical, false, 0);
+	
+	Gel_logical = new G4LogicalVolume (Gel_solid, Mat_Gel, "Gelcorpus logical");
+	Gel_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), Gel_logical, "Gelcorpus physical", Glass_logical, false, 0);
+    
+    TubeHolder_logical = new G4LogicalVolume (TubeHolder_solid, Mat_Absorber, "TubeHolder logical");
+    TubeHolder_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), TubeHolder_logical, "TubeHolder physical", Gel_logical, false, 0);
+		
+    RefConeType1_logical = new G4LogicalVolume(RefConeType1_solid, Mat_Reflector, "RefConeType1 logical");    
+	// placing PMTs & RefCones (into gel)
+	std::stringstream converter;
+	for (k = 0; k <= 23; k++){
+		// placing PMTs
+		converter.str("");
+		converter << "PMT_" << k << "_physical";
+		rot = new G4RotationMatrix();
+		rot->rotateY(PMT_theta[k]);
+		rot->rotateZ(PMT_phi[k]);
+		transformers = G4Transform3D(*rot, G4ThreeVector(PMT_x[k],PMT_y[k],PMT_z[k]));
+		PMT_physical[k] = new G4PVPlacement (transformers, PMT80_tube_logical, converter.str(), Gel_logical, false, 0);
+		
+		// placing reflective cones
+		converter.str("");
+		converter << "RefCone_" << k << "_physical";
+		transformers = G4Transform3D(*rot, G4ThreeVector(RefCone_x[k],RefCone_y[k],RefCone_z[k]));
+		RefCone_physical[k] = new G4PVPlacement (transformers, RefConeType1_logical, converter.str(), Gel_logical, false, 0);
+	}
+	
+// optical border surfaces
+	G4LogicalSkinSurface* RefConeSurface = new G4LogicalSkinSurface("RefCone_skin",RefConeType1_logical,RefCone_optical);
+	
+// assignment of visualisation attributes
+ 	World_logical->SetVisAttributes(World_vis);
+	Glass_logical->SetVisAttributes(Glass_vis);
+	Gel_logical->SetVisAttributes(Gel_vis);
+	TubeHolder_logical->SetVisAttributes(Absorber_vis);
+	RefConeType1_logical->SetVisAttributes(Alu_vis);
+	PMT80_tube_logical->SetVisAttributes(Glass_vis);
+	PC80_logical->SetVisAttributes(PhotoCathode_vis);
+	
+	World_physical = new G4PVPlacement (0, G4ThreeVector(0.,0.,0.), World_logical, "World_phys", 0, false, 0);
+
+	return World_physical;
+}

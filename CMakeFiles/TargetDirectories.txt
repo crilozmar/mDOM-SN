@@ -1,0 +1,1 @@
+/home/ray/Programme/geant4/pingu.exp/CMakeFiles/pingu_acceptance.dir
