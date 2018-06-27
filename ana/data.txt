@@ -1,3 +1,4 @@
-#Generated in a cylinder of r = 10m and total height of 20 m
+# World with 3 mDOMs
+# Gammas at 1.001 meters
+# RealDistance [m] | Vertex Position (X, Y, Z) [m] | Primary direction (Px,Py,Pz)  |Total hits | ModulesHit | PMTsHit |...for PMT hit...| Module number | PMT number | Hits in that PMT |...for Hit... hit time |#
 #
-0	0	0.9		0	0	-1		5	1		0	5		398.893	3.33511	506.782	3.27876	584.691	3.25814	456.979	3.4349	373.258	3.35964	

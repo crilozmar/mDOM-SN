@@ -52,8 +52,8 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 	extern std::vector<G4int>	stats_PMT_hit;
 	extern std::vector<G4int>	stats_OM_hit;
 //	extern G4long current_event_id;
-
-	std::vector<G4String> n;
+	std::vector<G4String> n_module; //module number
+	std::vector<G4String> n; //PMT number
 	extern std::vector<G4String> explode (G4String s, char d);
 	G4ThreeVector deltapos;
 	G4double Ekin;
@@ -92,8 +92,13 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 				lambda = h*c/Ekin;
 				if ( (!gQE) || ( (QEcheck(lambda)) && (gQE)) || (gQEweigh)) {
 					HitStat hitStat;
-	//				G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+					//G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+					//G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
+					n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
+					//G4cout <<"DEBUG: " << n_module.at(2) << G4endl;
 					n = explode(aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName(),'_');
+					
+					hitStat.moduleNr = atoi(n_module.at(2));
 					hitStat.pmtNr = atoi(n.at(1));
 	//				G4cout << hitStat.pmtNr << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getTheta() << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getPhi() << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getR() << G4endl;
 					hitStat.position = aTrack->GetPosition();
@@ -107,6 +112,14 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 					gAnalysisManager.hitStats.push_back(hitStat);
 				}
 				aTrack->SetTrackStatus(fStopAndKill);		// kills counted photon to prevent scattering and double-counting 
+			}
+		}
+	}
+	//kill everything which hits the photocathode that is not an optical photon...
+	if ( aTrack->GetDefinition()->GetParticleName() != "opticalphoton" ) {
+		if ( aTrack->GetTrackStatus() != fStopAndKill ) {
+			if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
+				aTrack->SetTrackStatus(fStopAndKill);
 			}
 		}
 	}

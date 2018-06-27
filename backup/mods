@@ -117,3 +117,20 @@ Notice that minimization changes theta and phi in all possible ways, so it would
 --------------------------------------------------------------------------------------------------------------
 
 Quantum efficiency implemented. Output only number of hits and pmt hist. Detector construction with one single pmt to check the quantum efficiency
+
+--------------------------------------------------------------------------------------------------------------
+/// 16_NewWork///
+--------------------------------------------------------------------------------------------------------------
+
+mDOM PMTs middle rows have been rotated to have one PMT right over the other.
+LIttle fixies here and there. SN timing improved. Alpha parameter improved . Sim ready to run point source of gammas. Detector construction updated.
+
+--------------------------------------------------------------------------------------------------------------
+/// 18_ManymDOMs//
+--------------------------------------------------------------------------------------------------------------
+
+- Input parameter to choose how many mDOMs in the simulation! Analysis manager modified to handle this
+- Input parameter to choose whether the mDOM has the harness around
+- Input parameter to choose whether the mDOM has the ropes
+- Orientation of PMTs is now changed to meet no-PMT part in x,y directions
+- SNTools now handles common operation of SN neutrinos. The code was also review and inproved. Solar neutruinos must also use SNTools for some tasks but I havent implemented it yet

@@ -1,12 +1,14 @@
 #ifndef mdomDetectorConstruction_h
 #define mdomDetectorConstruction_h 1
 
-
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4IntersectionSolid.hh"
+#include "G4LogicalSkinSurface.hh"
+
+extern G4int gn_mDOMs;
 
 class G4Box;
 class G4Sphere;
@@ -34,25 +36,28 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 		G4double Spice_Temperature(G4double depth);
 		G4double GetWaveLenght(float energy);
 		G4double Spice_Refraction(int u);
-
-// 		double z_offset(int i);
-		G4Tubs*					World_solid;
+		void PlacingHarnessAndRopes(G4double zpos,G4RotationMatrix* rot, G4double ropeThickness, G4double ropeLength);
+		
+		//G4Orb*					World_solid; //Spherical world
+		G4Tubs*					World_solid;	//Cylinder world
 		G4LogicalVolume*		World_logical;
 		G4VPhysicalVolume*		World_physical;
-
-		G4Sphere*				GelSphereTop_solid;
-		G4Sphere*				GelSphereBottom_solid;
+		
+		G4Ellipsoid*				GelSphereTop_solid;
+		G4Ellipsoid*				GelSphereBottom_solid;
 		G4Tubs*					GelCylinder_solid;
 		G4UnionSolid*			Gel_solid;
 		G4LogicalVolume*		Gel_logical;
 		G4VPhysicalVolume*		Gel_physical;
 
-		G4Sphere*				GlassSphereTop_solid;
-		G4Sphere*				GlassSphereBottom_solid;
+		G4Ellipsoid*				GlassSphereTop_solid;
+		G4Ellipsoid*				GlassSphereBottom_solid;
 		G4Tubs*					GlassCylinder_solid;
 		G4UnionSolid*			Glass_solid;
 		G4LogicalVolume*		Glass_logical;
+		
 		G4VPhysicalVolume*		Glass_physical;
+		std::vector<G4VPhysicalVolume *> Glass_physical_vector;
 		
 		G4SubtractionSolid*		TubeHolder_solid;	
 		G4LogicalVolume*		TubeHolder_logical;
@@ -136,7 +141,7 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 		G4LogicalVolume*		PDOM_Gel_logical;
 		G4VPhysicalVolume*		PDOM_Gel_physical;
 		
-		G4Sphere*				PDOM_AirAux_solid;
+		G4Ellipsoid*				PDOM_AirAux_solid;
 		G4SubtractionSolid*		PDOM_Air_solid;
 		G4LogicalVolume*		PDOM_Air_logical;
 		G4VPhysicalVolume*		PDOM_Air_physical;
@@ -144,6 +149,7 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 		G4Polycone*				PDOM_HarnessAux_solid;
 		G4SubtractionSolid*		PDOM_Harness_solid;
 		G4LogicalVolume*		PDOM_Harness_logical;
+		G4LogicalSkinSurface* PDOM_HarnessSurface;
 		G4VPhysicalVolume*		PDOM_Harness_physical;
 
 // actually placed PMTs
@@ -163,7 +169,11 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 		G4LogicalVolume*		RefConeType3_logical;
 		G4VPhysicalVolume*		RefCone_physical[24];
 
-		
+// ropes
+	G4Tubs* Rope_solid;
+	G4LogicalVolume* Rope_logical;
+	G4LogicalSkinSurface* Rope_surface;
+	
 };
 
 #endif

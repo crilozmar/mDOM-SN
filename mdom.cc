@@ -32,7 +32,7 @@
 //#include "Math/Factory.h"
 
 #include <cmath>	// for abs() of doubles
-// #include "G4SystemOfUnits.hh"	// if compiling with Geant4.10
+#include "G4SystemOfUnits.hh"	// if compiling with Geant4.10
 
 unsigned int	stats_buffer_max_size = 10;	// how many hits to keep in memory before purging to file in EndOfEventAction
 unsigned int	stats_buffer_last_purge_at = 0;	// at what hits count was the hits file last written to
@@ -44,6 +44,17 @@ G4double	gworldsize;
 G4double gRadius; // cylindrical world
 G4double gHeight; // cylindrical world
 G4int	gDepthpos;
+
+G4double	gscintYield;
+G4double	gscintTimeConst;
+G4double	gscintSpectrum;
+G4double	gTemperature;
+G4double	gRefCone_angle;
+
+G4bool gropes;
+G4bool gmdomharness;
+G4double	gmdomseparation;
+G4int	gn_mDOMs;
 
 G4int	gsimevents;
 G4int 	gReconstruction;
@@ -81,7 +92,7 @@ G4int		gHolderColor;
 G4int		gDOM;
 G4int 		gSNGun;
 
-std::vector<std::pair<G4int,G4int> > AcumulateHits;
+std::vector<std::tuple<G4int,G4int,G4int> > AcumulateHits;
 
 	std::stringstream command;
 
@@ -259,6 +270,31 @@ void ReconstructionOfEvents() {
 	*/
 }
 
+void PointSourceGPS() {
+	double cos_phi, sin_phi, cos_theta, sin_theta;
+	double rho, posX,posY,posZ;
+	
+	cos_phi = cos(gphi*deg);
+	sin_phi = sin(gphi*deg);
+	cos_theta = cos(gtheta*deg);
+	sin_theta = sin(gtheta*deg);
+	
+	rho = gDistance*sin_theta;
+	posX = rho*cos_phi;
+	posY = rho*sin_phi;
+	posZ = gDistance*cos_theta;	
+	
+	G4cout << gDistance << "\t" << posX <<" "<< posY <<" "<< posZ << G4endl;
+	
+	command.str("");
+	command << "/gps/position "<< posX <<" "<< posY <<" "<< posZ <<" m";
+	UI->ApplyCommand(command.str());
+	/*
+	command.str("");
+	command << "/gps/energy " << (1239.84193 / gwavelen) << " eV ";
+	UI->ApplyCommand(command.str());
+	*/
+}
 
 
 int mdom() {
@@ -318,7 +354,9 @@ int mdom() {
 		command << "/selectGun "<< gSNGun;
 		UI->ApplyCommand(command.str());
 		
-
+		if (gSNGun == 0){
+			PointSourceGPS();
+		}
 	// opening user interface prompt and visualization
 		if (gInteractive){
 			int argumc = 1;
@@ -364,7 +402,7 @@ int main(int argc,char *argv[])
 {
 	struct arg_dbl  *worldsize	= arg_dbl0("wW", "world","<n>","\t\tradius of world sphere in m");
 	struct arg_dbl  *diameter	= arg_dbl0("dD", "diam","<n>","\t\tbeam diameter in mm");
-	struct arg_dbl  *distance	= arg_dbl0("rR", "dist, rad","<n>","\t\temitter distance from origin, in mm");
+	struct arg_dbl  *distance	= arg_dbl0("rR", "dist, rad","<n>","\t\temitter distance from surface of the mDOM, in m");
 	struct arg_dbl  *xpos		= arg_dbl0("xX", "posx, posX","<n>","\t\t\tx of a puntual beam source in mm");
 	struct arg_dbl  *ypos		= arg_dbl0("yY", "posy, posY","<n>","\t\t\ty of a puntual beam source in mm");
 	struct arg_dbl  *zpos		= arg_dbl0("zZ", "posz, posZ","<n>","\t\t\tz of a puntual beam source in mm");
@@ -373,13 +411,26 @@ int main(int argc,char *argv[])
 	struct arg_dbl  *wavelen	= arg_dbl0("lL", "lambda","<n>","\t\twavelength of incoming light in nm");
 	struct arg_int  *events		= arg_int0("nN", "numevents,nevents","<n>","\tnumber of photons emitted per angle");
 	struct arg_file *gunfile	= arg_file0("gG","gun","<file.txt>","\t\tfile containing GPS parameters");
-	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]");
+	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]"); 
+	
+	struct arg_dbl  *mdomseparation		= arg_dbl0(NULL, "msep,mdomseparation","<n>","\t\t\tSeparation between mDOMs (center) in case that there is more than one in meters");
+	struct arg_int  *n_mDOMs		= arg_int0(NULL, "nmdoms,n_mdoms","<n>","\t\tNumber of mDOMs in the simulation (0 = 1)"); 
+
 
 	struct arg_int  *glass		= arg_int0("uU", "glass","<n>","\t\t\tglass type [VITROVEX, Chiba, Kopp, myVitroVex, myChiba, WOMQuartz, fusedSilica]");
 	struct arg_int	*gel 		= arg_int0("jJ", "gel", "<n>", "\t\t\tgel type [WACKER, Chiba, IceCube, Wacker_company]");
 	struct arg_int	*conemat 	= arg_int0("kK", "conemat", "<n>", "\t\t\tcone material [V95, v98, aluminium, total98]");
 	struct arg_int	*holdercol 	= arg_int0("cC", "holdercol", "<n>", "\t\t\tcone color [BLACK, white (Lambertian R = 98%)]");
 	struct arg_int	*dom 		= arg_int0("mM", "om, dom", "<n>", "\t\t\tmodule type [MDOM, PDOM]");
+	struct arg_dbl  *cone_ang   = arg_dbl0(NULL, "cone_ang","<n>","\t\t\topening semi-angle of cone; (45 deg)");	
+	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1");	
+	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1");	
+
+	
+	struct arg_dbl	*scintYield	= arg_dbl0(NULL, "scintYield", "<n>", "\t\tScintillation Yield of the glass (only Vitrovex). Default 57/MeV");
+	struct arg_dbl	*scintTimeConst	= arg_dbl0(NULL, "scintTimeConst", "<n>", "\t\tScintillation's Time constant of the glass (only Vitrovex) in ns. Default 300000.");
+	struct arg_dbl	*scintSpectrum	= arg_dbl0(NULL, "scintSpectrum", "<n>", "\t\tMove the scintillation's spectrum by # nm. Default 0 nm.");
+	struct arg_dbl	*Temperature 	= arg_dbl0(NULL, "Temperature", "<n>", "\t\t Temperature for material property selection");
 	
 	struct arg_int  *environment= arg_int0("eE", "environment","<n>","\t\tmedium in which the setup is emmersed [AIR, ice, spice]");
 	struct arg_file *outputfile	= arg_file0("oO","output","<file.txt>","\t\tfilename for hits data");
@@ -418,11 +469,22 @@ int main(int argc,char *argv[])
 						gunfile,
 						pmt,
 						
+						mdomseparation,
+						n_mDOMs,
+						
 						glass,
 						gel,
 						conemat,
 						holdercol,
 						dom,
+						cone_ang,
+						mdomharness,
+						ropes,
+						
+						scintYield,
+						scintTimeConst,
+						scintSpectrum,
+						Temperature,
 						
 						environment,
 						outputfile,
@@ -456,21 +518,34 @@ int main(int argc,char *argv[])
 	xpos->dval[0] = 0.0;
 	ypos->dval[0] = 0.0;
 	zpos->dval[0] = 300;
-	worldsize->dval[0] = 10.0;	// world diameter in meters
+	worldsize->dval[0] = 10.0;	// world diameter in meters -- NOT USED!!!!!
 	diameter->dval[0] = 420.0;	// 400 mm # for 14" sphere, 480 mm # for 17" sphere 
-	distance->dval[0] = 0.5 * 356 + 27.5 + 2; // here value for mDOM scan with 2*mm safety margin
-	theta->dval[0] = 0.0;
+	distance->dval[0] = 1.0; // here value for mDOM scan with 2*mm safety margin
+	theta->dval[0] = 90.0;
 	phi->dval[0] = 0.0;
 	wavelen->dval[0] = 470.0;	// [nm]
 	events->ival[0] = 0;
 	gunfile->filename[0] = "mdom.gps";
 	pmt->ival[0] = 0;			// use new R12199 version as default
 	
+	mdomseparation-> dval[0] = 2.4; //m
+	n_mDOMs->ival[0] = 1;
+	
 	glass->ival[0] = 0;	// use VITROVEX as default
 	gel->ival[0] = 3;	// use Wacker SilGel 612 A/B as default	
 	conemat->ival[0] = 0;	// use Alemco V95 as default
 	holdercol->ival[0] = 0;	// use classic black holder as default
 	dom->ival[0] = 0;	// use mDOM as default
+	
+	cone_ang->dval[0] = 45.0; // [degrees]	
+	
+	mdomharness->ival[0] = 1;
+	ropes->ival[0]=1;
+	
+	scintYield->dval[0] = 57.0;
+	scintTimeConst->dval[0] = 300000.0;
+	scintSpectrum->dval[0] = 0.0;
+	Temperature->dval[0] = -35;
 	
 	//outputfile->filename[0] = "../output/mdom_testoutput_scan_angular.txt";
 	hittype->ival[0] = 1;		// store information on collective hits as default
@@ -523,7 +598,8 @@ int main(int argc,char *argv[])
 //	assign command-line arguments to variables:
 	gworldsize = worldsize->dval[0];
 	gBeamDiam = diameter->dval[0];
-	gDistance = distance->dval[0];
+	gDistance = (0.5 * 356.0 + 1.0)/1000.0 + distance->dval[0];
+	//gworldsize = gDistance + 1. ; //meters
 	gtheta 	= theta->dval[0];
 	gphi 	= phi->dval[0];
 	gwavelen = wavelen->dval[0];
@@ -531,11 +607,21 @@ int main(int argc,char *argv[])
 	ggunfilename = gunfile->filename[0];
 	gPMT = pmt->ival[0];
 	
+	gmdomseparation= mdomseparation->dval[0]*m;
+	gn_mDOMs = n_mDOMs->ival[0];
+	
 	gGlass = glass->ival[0];
 	gGel = gel->ival[0];
 	gConeMat = conemat->ival[0];
 	gHolderColor = holdercol->ival[0];
 	gDOM = dom->ival[0];
+	
+	gRefCone_angle = cone_ang->dval[0];		
+	
+	gscintYield = scintYield->dval[0];
+	gscintTimeConst = scintTimeConst->dval[0];
+	gscintSpectrum = scintSpectrum->dval[0];
+	gTemperature = Temperature->dval[0];
 	
 	gDepthpos = depthpos->ival[0];
 	gEnvironment = environment->ival[0];
@@ -548,6 +634,8 @@ int main(int argc,char *argv[])
 	gSNmeanEnergy = SNmeanEnergy->dval[0];
 	gfixalpha = alpha->dval[0];
 
+	if (mdomharness->ival[0]==1) gmdomharness = true; else gmdomharness = false;
+	if (ropes->ival[0]==1) gropes = true; else gropes = false;
 	
 	if ((Sun_e->count>0) || (Sun_mu->count>0) || (Sun_tau->count>0) ){
 		if ((Sun_e->count>0) && ((Sun_mu->count>0) || (Sun_tau->count>0))) {
@@ -609,7 +697,14 @@ int main(int argc,char *argv[])
 		G4cout << "FATAL ERROR: can not choose QE killing event (--QE) and just weighing without killing (--wQE) at the same time" << G4endl;
 		goto hell;
 	}
-	
+
+	// Check if volume is big enough
+	if (((gn_mDOMs % 2 == 0) && ((gmdomseparation*(gn_mDOMs/2-1./2.)) > (gworldsize*m+0.3*m))) || ((gn_mDOMs % 2 != 0) && ((gmdomseparation*(gn_mDOMs/2)) > (gworldsize*m+0.3*m)))) {
+		G4cout << "This world is not big enough for those many mDOMs..." << G4endl;
+		goto hell;
+		}
+			
+
 	
 	if (hittype->ival[0]==0){
 		gHittype = "individual";
@@ -636,4 +731,5 @@ hell:
 	//	return exitcode;
 
 }
+
 

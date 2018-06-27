@@ -6,7 +6,7 @@
 #include "G4ios.hh"
 
 
-extern std::vector<std::pair<G4int,G4int> > AcumulateHits;
+extern std::vector<std::tuple<G4int,G4int,G4int> > AcumulateHits;
 extern MdomMinimization Minimization;
 extern G4double LogL;
 extern G4String	gEvent2Reconstruct;

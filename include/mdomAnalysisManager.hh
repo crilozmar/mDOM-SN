@@ -9,6 +9,7 @@
 #include <fstream>
 
 struct HitStat {
+	G4int moduleNr;
 	G4int pmtNr;
 	G4double theta;
 	G4double phi;
@@ -19,9 +20,10 @@ struct HitStat {
 };
 
 struct EvtStat {
-  G4int nrHitTot;// Anzahl Treffer insgesamt
-  G4int nrHitPMTs;// Anzahl der getroffenen PMTs
-  std::vector<std::pair<G4int,G4int> > hitsPMTs;// Nr des getroffenen PMTs und Trefferanzahl
+  G4int nrHitTot;// Total number of hits
+  G4int nrHitPMTs;// Number of PMTs hit
+  G4int nrHitMod; //Number of modules hit
+  std::vector<std::tuple<G4int,G4int,G4int> > hitsPMTs;// Module Nr | PMT number | Hits in this PMT
 };
 
 class MdomAnalysisManager
@@ -58,8 +60,9 @@ class MdomAnalysisManager
 		G4String outputFilename;
 		std::fstream datafile;
 		EvtStat evtStat;
+		G4double realdistance;
 	private:
-	
+	 //there is no privacy here
 };
 
 #endif
