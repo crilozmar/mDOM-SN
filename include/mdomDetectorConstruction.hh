@@ -8,7 +8,6 @@
 #include "G4IntersectionSolid.hh"
 #include "G4LogicalSkinSurface.hh"
 
-extern G4int gn_mDOMs;
 
 class G4Box;
 class G4Sphere;
@@ -55,7 +54,6 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 		G4Tubs*					GlassCylinder_solid;
 		G4UnionSolid*			Glass_solid;
 		G4LogicalVolume*		Glass_logical;
-		
 		G4VPhysicalVolume*		Glass_physical;
 		std::vector<G4VPhysicalVolume *> Glass_physical_vector;
 		

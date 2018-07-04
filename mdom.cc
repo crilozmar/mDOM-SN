@@ -598,7 +598,8 @@ int main(int argc,char *argv[])
 //	assign command-line arguments to variables:
 	gworldsize = worldsize->dval[0];
 	gBeamDiam = diameter->dval[0];
-	gDistance = (0.5 * 356.0 + 1.0)/1000.0 + distance->dval[0];
+	//gDistance = (0.5 * 356.0 + 1.0)/1000.0 + distance->dval[0];
+	gDistance = distance->dval[0];
 	//gworldsize = gDistance + 1. ; //meters
 	gtheta 	= theta->dval[0];
 	gphi 	= phi->dval[0];

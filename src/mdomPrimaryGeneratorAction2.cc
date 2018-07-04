@@ -141,7 +141,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
   ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xdir,ydir,zdir));
   
   G4double sigma = TotalCrossSection(nubar_energy);
-  G4double Weigh = SNToolBox.WeighMe(nubar_energy, sigma, NTargets);
+  G4double Weigh = SNToolBox.WeighMe(sigma, NTargets);
   
   //sending stuff to analysismanager
   gAnalysisManager.nuTime = timeofspectrum;

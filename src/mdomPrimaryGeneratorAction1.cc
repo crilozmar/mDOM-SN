@@ -135,7 +135,7 @@ void mdomPrimaryGeneratorAction1::GeneratePrimaries(G4Event* anEvent)
   
   // now calculate the weight
   G4double sigma = TotalCrossSection(nu_energy);
-  G4double Weigh = SNToolBox.WeighMe(nu_energy, sigma, NTargets);
+  G4double Weigh = SNToolBox.WeighMe(sigma, NTargets);
   
   //sending stuff to analysismanager
   gAnalysisManager.nuTime = timeofspectrum;

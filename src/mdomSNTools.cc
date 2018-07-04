@@ -3,6 +3,7 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 #include "G4VTouchable.hh"
+#include <stdlib.h>
 
 extern double gworldsize;
 extern  G4double gRadius;
@@ -33,12 +34,24 @@ bool mdomSNTools::CheckVolumeFormDOMs(G4ThreeVector position){
 	// check whether the given position is inside one of the modules
 	// Translation of frame of reference and then check R in spherical coordinates. Module will be assume to be spherical with Rmin
 	//It returns true when the particle is inside the module!
+	//G4cout << position.getX()/m << " "<<position.getY()/m << " "<< position.getZ()/m <<G4endl;
 	for ( int j=0; j<(G4int)mdompos.size(); j++ ) {
+		// First part: check sphere volume
 		G4ThreeVector thismodulepos;
 		thismodulepos = G4ThreeVector(0*m,0*m,mdompos[j]);
 		G4ThreeVector translation = thismodulepos - position ;
 		G4double distance = translation.getR();
 		if (distance < Rmin) {
+			return true;
+		}
+		//Second: check holder volume, simulated as cylinder
+		// Harness has approximately this size... there is no global variables for it
+		G4double radius = 200 * mm;
+		G4double height = 23*mm;
+		G4double Rho = pow(pow(translation.getX(),2)+pow(translation.getY(),2),1./2.);
+		G4double z = abs(translation.getZ());
+		//G4cout << Rho/m << " " << radius/m << " " << z/m << " " << height/m << G4endl;
+		if ( (Rho < radius) && (z < height) ) {
 			return true;
 		}
 	}
@@ -226,7 +239,7 @@ void MakeEnergyDistribution(G4double Emean, G4double alpha, G4int nPoints, std::
 }
 
 
-G4double mdomSNTools::WeighMe(G4double energy, G4double sigma, G4double NTargets) {
+G4double mdomSNTools::WeighMe(G4double sigma, G4double NTargets) {
   // GIve the weigh of the interaction because of the cross section as:
   // Weigh = sigma * Nt * r, where r is the distance of the neutrino in the ice 
   // and Nt is the number of target in ice (electrons in this case)

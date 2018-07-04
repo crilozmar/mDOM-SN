@@ -103,7 +103,7 @@ G4String nu;
 	nu = "nu";
   }
   if (gSNGun == 0) {
-	realdistance = gDistance*m - ((0.5 * 356.0)/1000.0)*m;
+	realdistance = gDistance*m;// - ((0.5 * 356.0)/1000.0)*m;
   datafile << "# Gammas at "<< realdistance/m << " meters" <<G4endl;
   datafile << "# RealDistance [m] | Vertex Position (X, Y, Z) [m] | Primary direction (Px,Py,Pz)  |Total hits | ModulesHit | PMTsHit |";
   					if (gQEweigh) {

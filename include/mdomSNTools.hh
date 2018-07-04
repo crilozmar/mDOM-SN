@@ -17,7 +17,7 @@ public:
 	G4double EnergyDistribution(G4double Emean, G4double Emean2, G4double& alpha);
 	G4double linealinterpolation(G4double realX,G4double lowerX, G4double upperX, G4double lowerY,G4double upperY);
 	G4double GetAlpha(G4double Emean,G4double Emean2);
-	G4double WeighMe(G4double energy, G4double sigma, G4double NTargets);
+	G4double WeighMe(G4double sigma, G4double NTargets);
 
 private:     
 	std::vector <G4double> mdompos;

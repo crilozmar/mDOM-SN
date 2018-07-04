@@ -2636,6 +2636,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   //Spherical world
   //World_solid = new G4Orb("World",gworldsize*m);
    //Cylinder world
+  
   G4double innerRadiusOfTheTube = 0.*cm;
   G4double startAngleOfTheTube = 0.*deg;
   G4double spanningAngleOfTheTube = 360.*deg;
@@ -3121,11 +3122,15 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     //mDOM Harness
 		// all called pDOM but we are still in mDOM
         G4double PDOM_Harness_inner[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //Inner radii of the harness
+		//G4double GlasOutRad_abitbigger = GlasOutRad + 1*mm;
+		//G4double PDOM_Harness_inner[] = {GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger}; //Inner radii of the harness
         G4double PDOM_Harness_radii[] = {179 * mm, (196.4 - 8) * mm, (196.4 - 6.35) * mm, 199 * mm, 196.4 * mm, 196.4 * mm, 199 * mm, (196.4 - 6.35) * mm, (196.4 - 8) * mm, 179 * mm}; //Outer radii of the harness
         G4double PDOM_Harness_zplanes[] = {-23 * mm, -22.5 * mm, -22.5 * mm, -10 * mm, -10 * mm, 10 * mm, 10 * mm, 22.5 * mm, 22.5 * mm, 23 * mm};  //Corresponding z values for the radii
-        PDOM_GlassSphere_solid = new G4Orb("PDOM_GlassSphere solid", 178 * mm); //Radius of the sphere to be cut from the harness
+        //PDOM_GlassSphere_solid = new G4Orb("PDOM_GlassSphere solid", GlasOutRad); //Radius of the sphere to be cut from the harness
+
         PDOM_HarnessAux_solid = new G4Polycone("PDOM_HarnessAux solid", 0, 2 * pi, 10, PDOM_Harness_zplanes, PDOM_Harness_inner, PDOM_Harness_radii);   //Creating harness via polycone geometry
-        PDOM_Harness_solid = new G4SubtractionSolid("PDOM_Harness solid", PDOM_HarnessAux_solid, PDOM_GlassSphere_solid);   //Cutting PDOM_GlassSphere_solid from PDOM_HarnessAux_solid
+        PDOM_Harness_solid = new G4SubtractionSolid("PDOM_Harness solid", PDOM_HarnessAux_solid, Glass_solid);   //Cutting PDOM_GlassSphere_solid from PDOM_HarnessAux_solid
+		//PDOM_Harness_solid = new G4SubtractionSolid("PDOM_Harness solid", PDOM_HarnessAux_solid, CylinderToSubstract_solid);   //Cutting PDOM_GlassSphere_solid from PDOM_HarnessAux_solid
         PDOM_Harness_logical = new G4LogicalVolume (PDOM_Harness_solid, Mat_Stahl, "PDOM_Harness logical");
         PDOM_HarnessSurface = new G4LogicalSkinSurface("PDOM_Harness_skin", PDOM_Harness_logical, PDOM_Harness_optical);
 		
@@ -3705,12 +3710,12 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 
 void mdomDetectorConstruction::PlacingHarnessAndRopes(G4double zpos, G4RotationMatrix* rot, G4double ropeThickness, G4double ropeLength){
 	if (gmdomharness) {
-        PDOM_Harness_physical = new G4PVPlacement (0, G4ThreeVector(0,0,zpos), PDOM_Harness_logical, "PDOM_Harness physical", World_logical, false, 0);
+        PDOM_Harness_physical = new G4PVPlacement (0, G4ThreeVector(0*m,0*m,zpos), PDOM_Harness_logical, "PDOM_Harness physical", World_logical, false, 0);
 	}
 		
 	if (gropes) {
 		G4int user_NbOfRopes = 4;                                                                 //Number of ropes
-		G4double ropeDistance = 196.4 * mm - ropeThickness / 2;                                   //Distance of the center of the rope from the center of the mDOM
+		G4double ropeDistance = 196.4 * mm - ropeThickness / 2.;                                   //Distance of the center of the rope from the center of the mDOM
 		G4double ropeAngle = atan2(178, 1000);                                                    //Tilting angle of the rope with respect to the mDOM axis
 		G4double radialShift = ropeLength * sin(ropeAngle);                                       //Translation of the center of the rope part due to tilting
 		G4double zShift = ropeLength * cos(ropeAngle) - ropeThickness * sin(ropeAngle);           //Z-position of the center of the rope incl. tilting correction and rope thickness correction

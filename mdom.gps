@@ -5,8 +5,29 @@
 
 /run/initialize
 
-/gps/ang/type iso
-/gps/pos/confine World_phys
-/gps/particle gamma
-/gps/energy 8 MeV
-/gps/position 0 0 1 m 
+#/gps/ang/type iso
+#/gps/pos/confine World_phys
+#/gps/particle gamma
+#/gps/energy 8 MeV
+#/gps/position 0 0 0 m 
+#
+#
+#
+
+
+/gps/particle opticalphoton
+/gps/energy 2.6 eV
+
+# new radiaton plane layout
+/gps/pos/type Plane
+/gps/pos/shape Circle
+/gps/pos/centre 0 0 30 cm
+#/gps/pos/radius 200 mm # for 14" sphere
+/gps/pos/radius 240 mm # for 17" sphere 
+/gps/pos/rot1 0 1 0		# define emitter plane with two vectors
+/gps/pos/rot2 0 0 1
+/gps/ang/rot1 0 1 0
+/gps/ang/rot2 0 0 1
+#/gps/ang/type beam2d
+#/gps/ang/sigma_x 0
+#/gps/ang/sigma_y 0
