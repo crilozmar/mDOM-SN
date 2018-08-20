@@ -13,4 +13,3 @@ The different classes of primary generator allows to simulate different kind of 
 
 Two type II SNe can be chosen (lighter and heavier ones) based on the ls220 EoS. For the type I SNe, 2 different models (DDT and GCD scenarios) can be chosen.
 
-DetectorConstruction is not up to date (but the bug reported by Martin has been already fixed).
