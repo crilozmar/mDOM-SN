@@ -4,16 +4,19 @@
 #include "Randomize.hh"
 #include "G4VTouchable.hh"
 #include <stdlib.h>
+#include "G4Navigator.hh"
+#include "G4TouchableHistoryHandle.hh"
 
 extern double gworldsize;
 extern  G4double gRadius;
 extern  G4double gHeight;
 extern G4bool gfixmeanenergy;
-
+extern G4Navigator* aNavigator;
 extern G4double	gmdomseparation;
 extern G4int	gn_mDOMs;
 
 mdomSNTools::mdomSNTools(){
+	/*
 	Rmin = (356./2.+27.5+1)*mm;  //mdom size along its bigger part
 	mdompos.resize(gn_mDOMs);
 	for (int k = 0; k < gn_mDOMs; k++){
@@ -24,7 +27,7 @@ mdomSNTools::mdomSNTools(){
 			zpos = gmdomseparation*(gn_mDOMs/2-k);
 		}
 		mdompos.at(k) = zpos;
-	}
+	}*/
 }
 
 mdomSNTools::~mdomSNTools(){
@@ -35,6 +38,12 @@ bool mdomSNTools::CheckVolumeFormDOMs(G4ThreeVector position){
 	// Translation of frame of reference and then check R in spherical coordinates. Module will be assume to be spherical with Rmin
 	//It returns true when the particle is inside the module!
 	//G4cout << position.getX()/m << " "<<position.getY()/m << " "<< position.getZ()/m <<G4endl;
+	//G4ThreeVector ProblematicPoint = G4ThreeVector(-161.517*mm,85.6623*mm,22.7964*mm);
+  	aNavigator->LocateGlobalPointAndSetup(position);
+  	G4TouchableHistoryHandle aTouchable = aNavigator->CreateTouchableHistoryHandle();
+	G4int HistoryDepth = aTouchable->GetHistoryDepth();
+	//G4cout << HistoryDepth << G4endl;
+	if (HistoryDepth > 0) {return true;}/* 
 	for ( int j=0; j<(G4int)mdompos.size(); j++ ) {
 		// First part: check sphere volume
 		G4ThreeVector thismodulepos;
@@ -54,7 +63,7 @@ bool mdomSNTools::CheckVolumeFormDOMs(G4ThreeVector position){
 		if ( (Rho < radius) && (z < height) ) {
 			return true;
 		}
-	}
+	}*/
 	return false;
 }
 

@@ -33,6 +33,7 @@
 
 #include <cmath>	// for abs() of doubles
 #include "G4SystemOfUnits.hh"	// if compiling with Geant4.10
+#include "G4Navigator.hh"
 
 unsigned int	stats_buffer_max_size = 10;	// how many hits to keep in memory before purging to file in EndOfEventAction
 unsigned int	stats_buffer_last_purge_at = 0;	// at what hits count was the hits file last written to
@@ -112,6 +113,8 @@ long randseed;
 
 MdomAnalysisManager gAnalysisManager;
 MdomMinimization Minimization;
+G4Navigator* aNavigator = new G4Navigator();
+
 
 G4UImanager* UI;
 

@@ -41,6 +41,7 @@ extern G4bool gmdomharness;
 extern G4bool gropes;
 extern G4double	gmdomseparation;
 extern G4int	gn_mDOMs;
+extern G4Navigator* aNavigator;
 
 extern G4double gRefCone_angle; // opening semi-angle of RefCone
 extern G4int gGlass;
@@ -3703,6 +3704,8 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 
   
   World_physical = new G4PVPlacement (0, G4ThreeVector(0.,0.,0.), World_logical, "World_phys", 0, false, 0);
+
+  aNavigator->SetWorldVolume(World_physical);
   
   return World_physical;
 }
