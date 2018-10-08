@@ -69,33 +69,66 @@ void MdomAnalysisManager::ClasifyTracks_New(G4String particle, G4double Energy, 
         AllFamilyTracks.push_back(thisfamilytrack);
     }
 }
-void MdomAnalysisManager::ClasifyTracks_AddTrack(G4int trackID, G4int parentID) 
+void MdomAnalysisManager::ClasifyTracks_AddTrack(G4String particle, G4int trackID, G4int parentID) 
 {   //First look only for the main parentID, for speed reasons, then for all IDs
     int this_i;
-    for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
-        if (parentID == AllFamilyTracks.at(i).grandparentID) {
-            this_i = i;
-            goto end;
-        }
-    }
-    for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
-        for (int j=0; j<(G4int)AllFamilyTracks.at(i).tracks.size(); j++ ) {
-            if (AllFamilyTracks.at(i).tracks.at(j) == parentID) {
+    if (particle == "opticalphoton") {
+        for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
+            if (parentID == AllFamilyTracks.at(i).grandparentID) {
                 this_i = i;
-                goto end;
+                goto opticalphotonend;
             }
         }
-    }
-    end:
-        if ((G4int)AllFamilyTracks.at(this_i).tracks.size() > 0) {
-            if ((std::find(std::begin(AllFamilyTracks.at(this_i).tracks), std::end(AllFamilyTracks.at(this_i).tracks), trackID) == std::end(AllFamilyTracks.at(this_i).tracks)) && (AllFamilyTracks.at(this_i).tracks.back() != trackID)) { //to avoid duplicates
-                //find returns the last element if it did not find it
-                AllFamilyTracks.at(this_i).tracks.push_back(trackID);
+        for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
+            for (int j=0; j<(G4int)AllFamilyTracks.at(i).parentstracks.size(); j++ ) {
+                if (AllFamilyTracks.at(i).parentstracks.at(j) == parentID) {
+                    this_i = i;
+                    goto opticalphotonend;
                 }
-        } else {
-            AllFamilyTracks.at(this_i).tracks.push_back(trackID);
+            }
         }
-
+        for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
+            for (int j=0; j<(G4int)AllFamilyTracks.at(i).photonstracks.size(); j++ ) {
+                if (AllFamilyTracks.at(i).photonstracks.at(j) == parentID) {
+                    this_i = i;
+                    goto opticalphotonend;
+                }
+            }
+        }
+        opticalphotonend:
+            if ((G4int)AllFamilyTracks.at(this_i).photonstracks.size() > 0) {
+                if ((std::find(std::begin(AllFamilyTracks.at(this_i).photonstracks), std::end(AllFamilyTracks.at(this_i).photonstracks), trackID) == std::end(AllFamilyTracks.at(this_i).photonstracks)) && (AllFamilyTracks.at(this_i).photonstracks.back() != trackID)) { //to avoid duplicates
+                    //find returns the last element if it did not find it
+                    AllFamilyTracks.at(this_i).photonstracks.push_back(trackID);
+                    }
+            } else {
+                AllFamilyTracks.at(this_i).photonstracks.push_back(trackID);
+            }
+    } else {
+        for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
+            if (parentID == AllFamilyTracks.at(i).grandparentID) {
+                this_i = i;
+                goto otherparticlesend;
+            }
+        }
+        for (int i=0; i<(G4int)AllFamilyTracks.size(); i++ ) {
+            for (int j=0; j<(G4int)AllFamilyTracks.at(i).parentstracks.size(); j++ ) {
+                if (AllFamilyTracks.at(i).parentstracks.at(j) == parentID) {
+                    this_i = i;
+                    goto otherparticlesend;
+                }
+            }
+        }
+        otherparticlesend:
+            if ((G4int)AllFamilyTracks.at(this_i).parentstracks.size() > 0) {
+                if ((std::find(std::begin(AllFamilyTracks.at(this_i).parentstracks), std::end(AllFamilyTracks.at(this_i).parentstracks), trackID) == std::end(AllFamilyTracks.at(this_i).parentstracks)) && (AllFamilyTracks.at(this_i).parentstracks.back() != trackID)) { //to avoid duplicates
+                    //find returns the last element if it did not find it
+                    AllFamilyTracks.at(this_i).parentstracks.push_back(trackID);
+                    }
+            } else {
+                AllFamilyTracks.at(this_i).parentstracks.push_back(trackID);
+            }
+    }
 }
 
 

@@ -98,9 +98,9 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     bool debugparameter = false;
                     if ((gSNGun == 2) && (gneutroncapture > 0)) { 
                         for (int i=0; i<(G4int)gAnalysisManager.AllFamilyTracks.size(); i++ ) {
-                            if ((G4int)gAnalysisManager.AllFamilyTracks.at(i).tracks.size() == 0)
+                            if ((G4int)gAnalysisManager.AllFamilyTracks.at(i).photonstracks.size() == 0)
                                 {continue;} 
-                            if ((std::find(std::begin(gAnalysisManager.AllFamilyTracks.at(i).tracks),      std::end(gAnalysisManager.AllFamilyTracks.at(i).tracks), trackID) != std::end(gAnalysisManager.AllFamilyTracks.at(i).tracks)) || (gAnalysisManager.AllFamilyTracks.at(i).tracks.back() == trackID)) {
+                            if ((std::find(std::begin(gAnalysisManager.AllFamilyTracks.at(i).photonstracks),      std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks), trackID) != std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks)) || (gAnalysisManager.AllFamilyTracks.at(i).photonstracks.back() == trackID)) {
                                 if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "e+") {
                                     mothercode = 1;
                                 } else if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "gamma") {

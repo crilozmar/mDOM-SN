@@ -39,7 +39,10 @@ struct FamilyTrack {
     G4String motherparticle;
     G4double energy;
     G4int grandparentID; // parent ID of all tracks here
-    std::vector<G4int> tracks;
+    std::vector<G4int> parentstracks;
+    //std::vector<G4int> photonstracks;
+    // separar tracks de posibles padres y de optical photons
+    
 };
 
 
@@ -57,7 +60,7 @@ class MdomAnalysisManager
         void Writer_data(std::fstream& thisfile, EvtStat& this_evtStat);
         void Helper_ResetEvent(EvtStat& this_evtStat);
         void ClasifyTracks_New(G4String particle, G4double Energy, G4int firstID);
-        void ClasifyTracks_AddTrack(G4int trackID, G4int parentID);
+        void ClasifyTracks_AddTrack(G4String particle, G4int trackID, G4int parentID);
 
 		G4double nuTime;
 		G4double nuMeanEnergy;

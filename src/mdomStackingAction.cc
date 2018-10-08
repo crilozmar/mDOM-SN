@@ -42,7 +42,7 @@ G4ClassificationOfNewTrack mdomStackingAction::ClassifyNewTrack(const G4Track * 
         } else {
             //G4cout << "track id "<<aTrack->GetTrackID() << " | parent ID " << aTrack->GetParentID() << G4endl;
 
-            gAnalysisManager.ClasifyTracks_AddTrack(aTrack->GetTrackID(), aTrack->GetParentID());
+            gAnalysisManager.ClasifyTracks_AddTrack(aTrack->GetDefinition()->GetParticleName(), aTrack->GetTrackID(), aTrack->GetParentID());
         }
      }
 	return fUrgent;

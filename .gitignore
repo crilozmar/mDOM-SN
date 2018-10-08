@@ -1,1 +1,5 @@
 build/
+ana/data.txt
+ana/data_gamma2MeV.txt
+ana/data_gamma8MeV.txt
+ana/data_info.txt
