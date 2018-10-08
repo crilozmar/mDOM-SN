@@ -7,7 +7,6 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
-
 //#include "TH1D.h"
 
 mdomTrackingAction::mdomTrackingAction()
@@ -20,14 +19,9 @@ mdomTrackingAction::~mdomTrackingAction()
 }
 
 void mdomTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
-{	/*
-   G4int test;
-   G4double test2;
-   test = aTrack->GetParentID();
-   if (test == 0) {
-     test2 = aTrack->GetKineticEnergy();
-     G4cout << test2/MeV << G4endl;
-   }*/
+{	
+   
+   //G4cout << "end of tracking action "<<G4endl;
 }
 
 void mdomTrackingAction::PostUserTrackingAction(const G4Track* aTrack)

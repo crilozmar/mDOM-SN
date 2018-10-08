@@ -14,6 +14,7 @@
 //#include "TH1.h"
 
 extern MdomAnalysisManager gAnalysisManager;
+extern G4int gSNGun;
 
 mdomEventAction::mdomEventAction()
 {}
@@ -24,6 +25,7 @@ mdomEventAction::~mdomEventAction()
 void mdomEventAction::BeginOfEventAction(const G4Event* evt)
 {
 //	Reset analysis manager
+
 	gAnalysisManager.ResetEvent();
 }
 

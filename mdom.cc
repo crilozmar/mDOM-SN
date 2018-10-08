@@ -8,6 +8,7 @@
 #include "mdomSteppingVerbose.hh"
 #include "mdomAnalysisManager.hh"
 #include "mdomMinimization.hh"
+#include "mdomStackingAction.hh"
 
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
@@ -45,6 +46,7 @@ G4double	gworldsize;
 G4double gRadius; // cylindrical world
 G4double gHeight; // cylindrical world
 G4int	gDepthpos;
+G4int gneutroncapture;
 
 G4double	gscintYield;
 G4double	gscintTimeConst;
@@ -186,7 +188,7 @@ void PointSource(double XGun, double YGun, double ZGun, double tGun, double fGun
 	UI->ApplyCommand(command.str());
 	
 }
-
+/*
 G4double FunctionToReconstruction(const G4double *xx) {
   
 	G4double fun;
@@ -227,6 +229,7 @@ G4double FunctionToReconstruction(const G4double *xx) {
 	return fun;
 	
 }
+*/
 
 void ReconstructionOfEvents() {
 /*
@@ -323,6 +326,9 @@ int mdom() {
 	#endif
 	G4VUserPrimaryGeneratorAction* gen_action = new mdomPrimaryGeneratorAction();
 	runManager->SetUserAction(gen_action);
+    
+    G4UserStackingAction* stacking_action = new mdomStackingAction();
+    runManager->SetUserAction(stacking_action);
 
 	G4UserRunAction* run_action = new mdomRunAction();
 	runManager->SetUserAction(run_action);
@@ -445,14 +451,14 @@ int main(int argc,char *argv[])
 	
 	// My stuff
 	struct arg_int  *depthpos	= arg_int0(NULL, "depthpos","<n>","\t\tDepth pos, check depth array in detectorconstruction to choose it propertly");
-	struct arg_int *SN	= arg_int0(NULL,"SN","<file.txt>","\t\t0=Heavy type II SN ls220, 1=Light type II SN ls220, 2=type IA SN DDT");
-	struct arg_int	*SNGun 		= arg_int0(NULL, "SNgun", "<n>", "\t\tselect gun [GPS, SN neutrino elastic scattering, SN antineutrino inverse beta]");
+	struct arg_int *SN	= arg_int0(NULL,"SN","<n>","\t\t0=Heavy type II SN ls220, 1=Light type II SN ls220, 2=type IA SN DDT");
+	struct arg_int	*SNGun 		= arg_int0(NULL, "SNgun", "<n>", "\t\tselect gun [GPS, SN ENEES, SN IBD [default without neutron capture]");
+    struct arg_int  *neutroncapture      = arg_int0(NULL, "neutroncapture", "<n>", "\t\tif SNgun=IBD, choose whether simulate also the neutron capture or not [0=No neutron capture, 1=Neutron capture as 2 MeV gamma, 2=Neutron capture as 8 MeV gamma, 3=Neutron capture as 2 MeV and 8 MeV gammas (separated files)]");
 	struct arg_lit	*Sun_e 		= arg_lit0(NULL, "Sun_e", "\t\tsimulate solar neutrinos -> nu_e interaction!");
 	struct arg_lit	*Sun_mu 		= arg_lit0(NULL, "Sun_mu", "\t\tsimulate solar neutrinos -> nu_mu and nu_tau interaction!");
 	struct arg_lit	*Sun_tau 		= arg_lit0(NULL, "Sun_tau", "\t\tsimulate solar neutrinos -> nu_mu and nu_tau interaction!");
 	struct arg_dbl *SNmeanEnergy		= arg_dbl0(NULL, "SNmeanE","<n>","\t\tInstead of using SN model, use this mean energy");
 	struct arg_dbl *alpha		= arg_dbl0(NULL, "alpha","<n>","\t\talpha parameter for the case of using --SNmeanEnergy");
-
 	struct arg_int *reconstruction = arg_int0("aA","Reconstruction", "<n>", "\t\tnumber of calls for the reconstruction. By default 0 (no reconstruction)");
 	struct arg_file *event2reconstruct = arg_file0("sS", "event2reconstruct", "<file.txt>","\t\tfile containing the hits per PMT to the event to reconstruct)");
 	struct arg_file *QEfile = arg_file0(NULL,"QEfile"," <file.txt>","\t\tfile with the Quantum Efficiency");
@@ -496,7 +502,7 @@ int main(int argc,char *argv[])
 						visual,
 						nohead,
 						depthpos,
-						SN, SNGun,
+						SN, SNGun,neutroncapture,
 						Sun_e, Sun_mu, Sun_tau,
 						SNmeanEnergy,
 						alpha,
@@ -559,6 +565,7 @@ int main(int argc,char *argv[])
 	environment->ival[0] = 2;	// use spice as default
 	SN->ival[0] = 0; // Use heavy SN as default
 	SNGun->ival[0]=0; //gps by default
+	neutroncapture->ival[0]=0; //no neutron capture by default
 	reconstruction->ival[0] = 0; //No reconstruction by default
 	outputfile->filename[0] = "../ana/data.txt";
 	event2reconstruct->filename[0] = "event2reconstruct.cfg"; //Just because we need a default file. This non-real event is all 0. 
@@ -659,7 +666,12 @@ int main(int argc,char *argv[])
 		gSNGun = SNGun->ival[0];
 	}
 		
-	
+	if ((neutroncapture->ival[0] < 0) || (neutroncapture->ival[0]>3)) {
+        G4cout << "INPUT ERROR -> neutroncapture must be between 0 and 3!!!" <<G4endl;
+        goto hell;
+    } else {
+        gneutroncapture = neutroncapture->ival[0];
+    }
 	gReconstruction = reconstruction->ival[0];
 	gEvent2Reconstruct = event2reconstruct->filename[0];
 	gQEfile = QEfile->filename[0];

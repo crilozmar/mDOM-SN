@@ -26,6 +26,7 @@ extern MdomAnalysisManager gAnalysisManager;
 extern G4double	gSNmeanEnergy;
 extern G4bool		gfixmeanenergy;
 extern G4double 	gfixalpha;
+extern G4int gneutroncapture;
 
 mdomPrimaryGeneratorAction2::mdomPrimaryGeneratorAction2(G4ParticleGun* gun)
 : ParticleGun(gun)
@@ -156,8 +157,31 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
   //create vertex
   //   
   ParticleGun->GeneratePrimaryVertex(anEvent);
+  
+  //gammas of 2 MeV
+  if ((gneutroncapture == 1) || (gneutroncapture == 3)) {
+      G4double gammaE = 2*MeV;
+      GenerateGamma(gammaE, Position, anEvent);
+  }
+  if ((gneutroncapture == 2) || (gneutroncapture == 3)) {
+      G4double gammaE = 8*MeV;
+      GenerateGamma(gammaE, Position, anEvent);
+  }
 }
 
+
+void mdomPrimaryGeneratorAction2::GenerateGamma(G4double Energy, G4ThreeVector Position, G4Event* anEvent) 
+{
+  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("gamma");
+  ParticleGun->SetParticleDefinition(particle); 
+  G4double xdir = G4UniformRand();
+  G4double ydir = G4UniformRand();
+  G4double zdir = G4UniformRand();
+  ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xdir,ydir,zdir));
+  ParticleGun->SetParticlePosition(Position);
+  ParticleGun->SetParticleEnergy(Energy); 
+  ParticleGun->GeneratePrimaryVertex(anEvent);
+}
 
 
 void mdomPrimaryGeneratorAction2::DistFunction(G4double Enubar)

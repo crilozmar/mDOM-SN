@@ -5,7 +5,7 @@
 
 #include "globals.hh"
 #include <vector>
-
+#include "G4ThreeVector.hh"
 
 class G4ParticleGun;
 class G4Event;
@@ -17,7 +17,6 @@ public:
 	~mdomPrimaryGeneratorAction2();
 
 	void GeneratePrimaries(G4Event* anEvent);
-
     G4double InverseCumul(int ControlParameter);  
     G4int                  nPoints0;     //tabulated function
     G4int                  nPoints_lum;     //tabulated function
@@ -53,6 +52,7 @@ public:
 private:     
     G4ParticleGun*         ParticleGun;
 	void DistFunction(G4double Enu);
+    void GenerateGamma(G4double Energy, G4ThreeVector Position, G4Event* anEvent);
     G4double PositronEnergy(G4double nubar_energy, G4double costheta);
     G4double TotalCrossSection(G4double energy);
     G4double fixenergy;
