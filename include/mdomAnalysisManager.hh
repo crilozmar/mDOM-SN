@@ -40,7 +40,7 @@ struct FamilyTrack {
     G4double energy;
     G4int grandparentID; // parent ID of all tracks here
     std::vector<G4int> parentstracks;
-    //std::vector<G4int> photonstracks;
+    std::vector<G4int> photonstracks;
     // separar tracks de posibles padres y de optical photons
     
 };

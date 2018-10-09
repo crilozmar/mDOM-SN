@@ -317,6 +317,7 @@ void MdomAnalysisManager::Writer_data(std::fstream& thisfile, EvtStat& this_evtS
             sum = sum + hitStats[i].QEprob;
         }
         thisfile << sum << "\t";
+        
     }
     thisfile << "\t";
     for ( int j=0; j<(G4int)this_evtStat.hitsPMTs.size(); j++ ) {
