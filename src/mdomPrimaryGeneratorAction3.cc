@@ -14,6 +14,8 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include "mdomSNTools.hh"
+
 
 extern double gworldsize;
 extern G4String	gSunspectrum;
@@ -54,8 +56,10 @@ void mdomPrimaryGeneratorAction3::GeneratePrimaries(G4Event* anEvent)
   G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
   ParticleGun->SetParticleDefinition(particle);
 
-  RandomPosition();
-
+  mdomSNTools SNToolBox;
+  G4ThreeVector Position;
+  SNToolBox.RandomPosition(Position);
+  ParticleGun->SetParticlePosition(Position);
   //set energy from a tabulated distribution
   //
   beggining:
@@ -111,55 +115,6 @@ void mdomPrimaryGeneratorAction3::GeneratePrimaries(G4Event* anEvent)
   // 
   ParticleGun->GeneratePrimaryVertex(anEvent);
 }
-
-
-
-
-void mdomPrimaryGeneratorAction3::RandomPosition() {
-  // Just to give a random coordinates for the primaries inside the Ice
-    /*
-  G4double Pos_cosTheta = 2*G4UniformRand() - 1;  //cosTheta uniform in [0, pi]
-  G4double Pos_sinTheta = std::sqrt(1. - Pos_cosTheta*Pos_cosTheta);
-  G4double Pos_phi      = twopi*G4UniformRand();  //phi uniform in [0, 2*pi]
-  G4ThreeVector ur(Pos_sinTheta*std::cos(Pos_phi),Pos_sinTheta*std::sin(Pos_phi),Pos_cosTheta);
-  */
-  G4double Rmin = (356./2.+27.5+1)*mm; 
-  G4double Rmax = pow(3,1./2.)*gworldsize*m;
-  G4double Rmax2 = gworldsize*m;
-  /*G4double fRmin3 = Rmin*Rmin*Rmin;
-  G4double fRmax3 = Rmax*Rmax*Rmax;
-  
-  G4double R3 = fRmin3 + G4UniformRand()*(fRmax3 - fRmin3);
-  G4double R  = std::pow(R3, 1./3);  
-  
-  G4ThreeVector Position = R*ur;
-
-  if (Position[0] > gRadius || Position[1] > gRadius || Position[2] > gHeight) {
-    RandomPosition();
-  } else {
-
-  //G4cout << gRadius/m << ", " << gHeight/m << G4endl;
-  //G4cout << Position[0]/m << ", " << Position[1]/m << ", " << Position[2]/m << G4endl;
-    */
-  G4double posornegX = 1;
-  if (G4UniformRand()<0.5) { posornegX = -1;}
-    G4double posornegY = 1;
-  if (G4UniformRand()<0.5) { posornegY = -1;}
-    G4double posornegZ = 1;
-  if (G4UniformRand()<0.5) { posornegZ = -1;}
-  G4double posz = posornegZ*(G4UniformRand()*gHeight);
-  G4double posx = posornegX*(G4UniformRand()*gRadius);
-  G4double posy = posornegY*(G4UniformRand()*gRadius);
-  G4ThreeVector Position(posx,posy,posz);
-  G4double R3 = pow(pow(Position[0],2)+pow(Position[1],2)+pow(Position[2],2),1./2.);
-  G4double R2 = pow(pow(Position[0],2)+pow(Position[1],2),1./2.);
-  if (( R3 <= Rmin ) || (R3 >= Rmax) || (R2 >= Rmax2)) {
-     RandomPosition();
-  } else {
-  ParticleGun->SetParticlePosition(Position);
-  }
-}
-
 
 
 void mdomPrimaryGeneratorAction3::Fe_build()

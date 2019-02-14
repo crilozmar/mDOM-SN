@@ -20,7 +20,7 @@ public:
 
   public:        
     G4double InverseCumul(int ControlParameter);   
-    void RandomPosition();
+    //void RandomPosition();
     G4int                  nPoints1;     //tabulated function
     std::vector<G4double>  x1;
     std::vector<G4double>  f1;           //f(x)

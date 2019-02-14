@@ -541,12 +541,12 @@ int main(int argc,char *argv[])
 	n_mDOMs->ival[0] = 1;
 	
 	glass->ival[0] = 0;	// use VITROVEX as default
-	gel->ival[0] = 3;	// use Wacker SilGel 612 A/B as default	
+	gel->ival[0] = 2;	// IceCube (SQI) as default	
 	conemat->ival[0] = 0;	// use Alemco V95 as default
 	holdercol->ival[0] = 0;	// use classic black holder as default
 	dom->ival[0] = 0;	// use mDOM as default
 	
-	cone_ang->dval[0] = 45.0; // [degrees]	
+	cone_ang->dval[0] = 51.0; // [degrees]	
 	
 	mdomharness->ival[0] = 1;
 	ropes->ival[0]=1;
