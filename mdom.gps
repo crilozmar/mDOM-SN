@@ -21,7 +21,7 @@
 # new radiaton plane layout
 /gps/pos/type Plane
 /gps/pos/shape Circle
-/gps/pos/centre 0 0 30 cm
+/gps/pos/centre 0 0 0 cm
 #/gps/pos/radius 200 mm # for 14" sphere
 /gps/pos/radius 240 mm # for 17" sphere 
 /gps/pos/rot1 0 1 0		# define emitter plane with two vectors

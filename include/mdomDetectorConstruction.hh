@@ -31,11 +31,23 @@ class mdomDetectorConstruction : public G4VUserDetectorConstruction
 
 	private:
 		G4double Mie_Scattering(int u, int depth_pos);
+                G4double Mie_Scattering_HoleIce(G4double av_costheta, G4double be_inv);
 		G4double Spice_Absorption(int u, int depth_pos);
 		G4double Spice_Temperature(G4double depth);
 		G4double GetWaveLenght(float energy);
 		G4double Spice_Refraction(int u);
-		void PlacingHarnessAndRopes(G4double zpos,G4RotationMatrix* rot, G4double ropeThickness, G4double ropeLength);
+		void PlacingHarnessAndRopes(G4double zpos,G4RotationMatrix* rot, G4double ropeThickness, G4double ropeLength, G4int k);
+                
+                // Ice columns
+                //G4VSolid*                       HoleIceTube_outer_solid;
+                G4VSolid*                       HoleIceTube_inner_solid;
+                G4VSolid*                       HoleIceTube_inner_cut_solid;
+                //G4LogicalVolume*                HoleIceTube_outer_logical;
+                G4LogicalVolume*                HoleIceTube_inner_logical;
+                G4LogicalVolume*                HoleIceTube_inner_cut_logical;
+                //G4VPhysicalVolume*              HoleIceTube_outer_physical;
+                G4VPhysicalVolume*              HoleIceTube_inner_physical;
+                G4VPhysicalVolume*              HoleIceTube_inner_cut_physical;
 		
 		//G4Orb*					World_solid; //Spherical world
 		G4Tubs*					World_solid;	//Cylinder world

@@ -48,6 +48,12 @@ G4double gHeight; // cylindrical world
 G4int	gDepthpos;
 G4int gneutroncapture;
 
+G4double gInnercolumnradius;
+G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
+G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
+G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
+G4double gInnercolumn_be_inv;
+
 G4double	gscintYield;
 G4double	gscintTimeConst;
 G4double	gscintSpectrum;
@@ -168,7 +174,7 @@ std::vector<double> readColumnDouble (G4String fn, int col) {
 	}
 	infile.close();
 
-	return values;//values enthält den c. Wert aus fn (aus jeder Spalte,welche  nach 255 zeichen oder durch \n beendet wird?)
+	return values;//values enth??lt den c. Wert aus fn (aus jeder Spalte,welche  nach 255 zeichen oder durch \n beendet wird?)
 }
 
 void PointSource(double XGun, double YGun, double ZGun, double tGun, double fGun) {
@@ -346,11 +352,6 @@ int mdom() {
 
 	UI = G4UImanager::GetUIpointer();
 	
-// setting up source:
-	command.str("");
-	command << "/control/execute " << ggunfilename;
-	UI->ApplyCommand(command.str());
-	
 	UI->ApplyCommand("/tracking/verbose 0");
 
 	if (gReconstruction > 0) {
@@ -364,7 +365,11 @@ int mdom() {
 		UI->ApplyCommand(command.str());
 		
 		if (gSNGun == 0){
-			PointSourceGPS();
+                        // setting up source:
+                        command.str("");
+                        command << "/control/execute " << ggunfilename;
+                        UI->ApplyCommand(command.str());
+			//PointSourceGPS();
 		}
 	// opening user interface prompt and visualization
 		if (gInteractive){
@@ -421,7 +426,13 @@ int main(int argc,char *argv[])
 	struct arg_int  *events		= arg_int0("nN", "numevents,nevents","<n>","\tnumber of photons emitted per angle");
 	struct arg_file *gunfile	= arg_file0("gG","gun","<file.txt>","\t\tfile containing GPS parameters");
 	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]"); 
-	
+        
+	struct arg_dbl  *innercolumn_radius		= arg_dbl0(NULL, "innercolumn_radius","<n>","\t\tRadius of inner ice column in cm, def. 15");
+        struct arg_dbl  *innercolumn_pos_x		= arg_dbl0(NULL, "innercolumn_pos_x","<n>","\t\tx pos of the inner column relative to the modules, in cm. Def 0");
+        struct arg_dbl  *innercolumn_pos_y		= arg_dbl0(NULL, "innercolumn_pos_y","<n>","\t\ty pos of the inner column relative to the modules, in cm. Def 0");
+	struct arg_dbl  *innercolumn_av_costheta		= arg_dbl0(NULL, "innercolumn_av_costheta","<n>","\t\tAv costheta for mie scattering in inner column"); 
+	struct arg_dbl  *innercolumn_be_inv		= arg_dbl0(NULL, "innercolumn_be_inv","<n>","\t\tEffective scattering lenght for the inner column in cm. Def 100"); 
+        
 	struct arg_dbl  *mdomseparation		= arg_dbl0(NULL, "msep,mdomseparation","<n>","\t\t\tSeparation between mDOMs (center) in case that there is more than one in meters");
 	struct arg_int  *n_mDOMs		= arg_int0(NULL, "nmdoms,n_mdoms","<n>","\t\tNumber of mDOMs in the simulation (0 = 1)"); 
 
@@ -477,6 +488,12 @@ int main(int argc,char *argv[])
 						events,
 						gunfile,
 						pmt,
+                                                
+                                                innercolumn_radius,
+                                                innercolumn_pos_x,
+                                                innercolumn_pos_y,
+                                                innercolumn_av_costheta,
+                                                innercolumn_be_inv,
 						
 						mdomseparation,
 						n_mDOMs,
@@ -536,6 +553,12 @@ int main(int argc,char *argv[])
 	events->ival[0] = 0;
 	gunfile->filename[0] = "mdom.gps";
 	pmt->ival[0] = 0;			// use new R12199 version as default
+	
+	innercolumn_radius->dval[0] = 15; //cm
+	innercolumn_pos_x->dval[0] = 0; //cm
+	innercolumn_pos_y->dval[0] = 0; //cm
+	innercolumn_av_costheta->dval[0] = 0.95; //cm
+	innercolumn_be_inv->dval[0] = 100; //cm
 	
 	mdomseparation-> dval[0] = 2.4; //m
 	n_mDOMs->ival[0] = 1;
@@ -617,7 +640,18 @@ int main(int argc,char *argv[])
 	gsimevents = events->ival[0];
 	ggunfilename = gunfile->filename[0];
 	gPMT = pmt->ival[0];
-	
+        
+        gInnercolumnradius = innercolumn_radius->dval[0]*cm;
+        gInnercolumn_pos_x = innercolumn_pos_x->dval[0]*cm;
+        gInnercolumn_pos_y = innercolumn_pos_y->dval[0]*cm;
+        if ((innercolumn_av_costheta->dval[0] > 1) || (innercolumn_av_costheta->dval[0] < 0)) {
+            G4cout << "FATAL ERROR: innercolumn_av_costheta must be between 0 and 1!" << G4endl;
+            goto hell;
+        } else {
+            gInnercolumn_av_costheta = innercolumn_av_costheta->dval[0];
+        }
+        gInnercolumn_be_inv = innercolumn_be_inv->dval[0] * cm;
+
 	gmdomseparation= mdomseparation->dval[0]*m;
 	gn_mDOMs = n_mDOMs->ival[0];
 	
