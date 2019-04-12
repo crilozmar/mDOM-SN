@@ -14,6 +14,7 @@
 #include "G4UImanager.hh"
 #include "G4UIterminal.hh"
 #include "G4ThreeVector.hh"
+#include "G4PhysicalConstants.hh"
 
 #include "G4UItcsh.hh"
 #include "G4VisExecutive.hh"
@@ -48,6 +49,8 @@ G4double gHeight; // cylindrical world
 G4int	gDepthpos;
 G4int gneutroncapture;
 
+G4int gEmitter_mdom;
+const char*     gActivateLED;
 G4double gInnercolumnradius;
 G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
 G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
@@ -309,6 +312,203 @@ void PointSourceGPS() {
 }
 
 
+void LED_Definition()
+{
+    int nbOfLEDs = strlen(gActivateLED);
+    double phi, theta, dist, theta_p, cos_phi, sin_phi, cos_theta, sin_theta, cos_theta_p, sin_theta_p;
+    double rho, posX, posY, posZ, posXp, posYp, posZp, x, y, z, xp, yp, zp;
+    double offset_phi = -360. / 8 / 2  * deg;
+    G4double GelThick = 2 * mm;
+    G4double GlasOutRad = 0.5 * 356 * mm;
+    G4double GlasThick = 13 * mm;
+    G4double GlasInRad = GlasOutRad - GlasThick;
+    G4double FoamRad = GlasInRad - GelThick;
+    G4double LEDSphereSize = 0 * mm;
+    G4double DistLED = FoamRad + LEDSphereSize + 0.2 * mm;
+    G4double CylHigh = 27.5 * mm;
+    G4double totalDOMsize = 199 * mm;
+
+    
+    std::stringstream command;
+    
+    std::vector< std::vector<double> > v_LED_Positions;
+    v_LED_Positions.resize(nbOfLEDs);
+    for (uint i = 0; i < v_LED_Positions.size(); i++)
+    {
+        (v_LED_Positions.at(i)).resize(2);
+    }
+    //top LED
+    (v_LED_Positions.at(0)).at(0) = 0. * deg; //-> theta
+    (v_LED_Positions.at(0)).at(1) = 0. * deg; //-> phi
+    //4x on one side
+    for (uint i = 1; i < 5; i++) {
+        (v_LED_Positions.at(i)).at(0) = 42.5*deg;
+        (v_LED_Positions.at(i)).at(1) = 90*deg * (i-1);
+    }
+    //4x other side
+    for (uint i = 5; i < 9; i++) {
+        (v_LED_Positions.at(i)).at(0) = 180*deg - 42.5*deg;
+        (v_LED_Positions.at(i)).at(1) = 90*deg * (i-1);
+    }
+    //bottom one
+    (v_LED_Positions.at(9)).at(0) = 180. * deg;
+    (v_LED_Positions.at(9)).at(1) = 0. * deg;
+    //4x at the center ring, alternating hemispheres
+    /*
+    (v_LED_Positions.at(10)).at(0) = 80. * deg;
+    (v_LED_Positions.at(10)).at(1) = 45. * deg;
+    (v_LED_Positions.at(11)).at(0) = 100. * deg;
+    (v_LED_Positions.at(11)).at(1) = 135. * deg;
+    (v_LED_Positions.at(12)).at(0) = 80. * deg;
+    (v_LED_Positions.at(12)).at(1) = 225. * deg;
+    (v_LED_Positions.at(13)).at(0) = 100. * deg;
+    (v_LED_Positions.at(13)).at(1) = 315. * deg;
+    */
+    for (int i = 1; i < nbOfLEDs; i++)
+    {
+        static int iter = 0;
+        if (*(gActivateLED + i) != '0')
+        {
+            command.str("");
+            command << "/gps/source/add " << ++iter;
+            UI->ApplyCommand(command.str());
+        }
+        
+        if (i == (nbOfLEDs - 1) && *gActivateLED == '0')
+        {
+            command.str("");
+            command << "/gps/source/delete " << iter;
+            UI->ApplyCommand(command.str());
+        }
+    }
+
+//     for (uint i = 0; i < v_LED_Positions.size(); i++)
+    for (int i = 0; i < nbOfLEDs; i++)
+    {
+        static int iter = 0;
+        if (*(gActivateLED + i) != '0')
+        {
+            command.str("");
+            command << "/gps/source/set " << iter++;
+            UI->ApplyCommand(command.str());
+            
+            phi = (v_LED_Positions.at(i)).at(1);
+            theta = (v_LED_Positions.at(i)).at(0);
+            
+            cos_phi = cos(phi);
+            sin_phi = sin(phi);
+            cos_theta = cos(theta);
+            sin_theta = sin(theta);
+            
+            if (theta < atan2(DistLED, CylHigh))
+            {
+                dist = -(CylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(CylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel kleiner 90?
+            }
+            else if (theta > pi - atan2(DistLED, CylHigh))
+            {
+                dist = -(-CylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(CylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel gr??er 90?
+            }
+            else
+            {
+                dist = - DistLED / sin_theta;//f?r den Zylinder um 90? herum
+            }
+            
+            rho = dist * sin_theta;//Projektion des Ortsvektors auf die Symmetrieebene zwischen den Halbkugeln
+            posXp = rho * cos_phi + gInnercolumn_pos_x * totalDOMsize;
+            posYp = rho * sin_phi + gInnercolumn_pos_y * totalDOMsize;
+            posZp = dist * cos_theta;
+            
+            G4double gmDOMTiltingAngle_x = 0;
+            G4double gmDOMTiltingAngle_y = 0;
+            G4double xa = gmDOMTiltingAngle_x * deg;
+            G4double ya = gmDOMTiltingAngle_y * deg;
+            
+            posX =  posXp           * cos(ya)                   - posZp           * sin(ya);
+            posY = -posXp * sin(xa) * sin(ya) + posYp * cos(xa) + posZp * sin(xa) * cos(ya);
+            posZ =  posXp * cos(xa) * sin(ya) - posYp * sin(xa) + posZp * cos(xa) * cos(ya);
+            
+            if (theta < 90 * deg)
+            {
+                theta_p = asin(-rho / DistLED); // this is the angle from the center point of the DistLED; minus because of the negative definition of dist
+            }
+            else
+            {
+                theta_p = 180 * deg - asin(-rho / DistLED); //weil asin() nur Winkel zwischen -90? und 90? macht
+            }
+            cos_theta_p = cos(theta_p);//Vektor auf die Oberfl?che der Halbkugel
+            sin_theta_p = sin(theta_p);//Vektor auf die Oberfl?che der Halbkugel
+            
+            if (gn_mDOMs % 2 == 0) {
+                    posZ = posZ + gmdomseparation*(gn_mDOMs/2-gEmitter_mdom-1./2.);
+            } else {
+                    posZ = posZ + gmdomseparation*(gn_mDOMs/2-gEmitter_mdom);
+            }
+            
+            command.str("");
+            command << "/gps/pos/centre " << posX << " " << posY << " " << posZ << " mm";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "/gps/particle opticalphoton";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "/gps/source/intensity 1";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "/gps/energy " << (1239.84193 / gwavelen) << " eV";
+            UI->ApplyCommand(command.str());
+                    
+            command.str("");
+            command << "/gps/pos/type Point";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "/gps/ang/type iso";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "/gps/ang/mintheta 0 deg";
+            UI->ApplyCommand(command.str());
+            
+            G4double gMaxTheta = 10;
+            command.str("");
+            command << "/gps/ang/maxtheta " << gMaxTheta << " deg";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            command << "";
+            UI->ApplyCommand(command.str());
+
+            xp = -sin_phi;	// d/dphi of positionVector (original divided by sin_theta, because length one not needed)
+            yp = cos_phi;
+            zp = 0;
+
+            x =  xp           * cos(ya)                - zp           * sin(ya);
+            y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
+            z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
+            
+            command.str("");
+            command << "/gps/ang/rot1 " << x << " " << y << " " << z;
+            UI->ApplyCommand(command.str());
+
+            xp = -cos_phi * cos_theta_p;	// -d/dtheta of positionVector (divided by sin_theta, because length one not needed)
+            yp = -sin_phi * cos_theta_p;
+            zp = sin_theta_p;
+
+            x =  xp           * cos(ya)                - zp           * sin(ya);
+            y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
+            z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
+            
+            command.str("");
+            command << "/gps/ang/rot2 " << x << " " << y << " " << z;
+            UI->ApplyCommand(command.str());
+        }
+    }
+}
+
+
 int mdom() {
 	struct timeval time_for_randy;
 	gettimeofday(&time_for_randy, NULL);
@@ -366,10 +566,15 @@ int mdom() {
 		
 		if (gSNGun == 0){
                         // setting up source:
-                        command.str("");
-                        command << "/control/execute " << ggunfilename;
-                        UI->ApplyCommand(command.str());
-			//PointSourceGPS();
+                        if (gActivateLED == "0000000000"){
+                            //PointSourceGPS();
+                            //Standard GPS
+                            command.str("");
+                            command << "/control/execute " << ggunfilename;
+                            UI->ApplyCommand(command.str());
+                        } else {
+                            LED_Definition();
+                        }
 		}
 	// opening user interface prompt and visualization
 		if (gInteractive){
@@ -427,6 +632,8 @@ int main(int argc,char *argv[])
 	struct arg_file *gunfile	= arg_file0("gG","gun","<file.txt>","\t\tfile containing GPS parameters");
 	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]"); 
         
+        struct arg_str *activate_LED = arg_str0("", "LED", "<e.g. 1001101010>", "\t\tactivating (1 - default) or deactivating (0) the LEDs (0 - 10)");
+	struct arg_int  *emitter_mdom		= arg_int0(NULL, "emitter_mdom","<n>","\t\tEmitter mDOM, default 0"); 
 	struct arg_dbl  *innercolumn_radius		= arg_dbl0(NULL, "innercolumn_radius","<n>","\t\tRadius of inner ice column in cm, def. 15");
         struct arg_dbl  *innercolumn_pos_x		= arg_dbl0(NULL, "innercolumn_pos_x","<n>","\t\tx pos of the inner column relative to the modules, in cm. Def 0");
         struct arg_dbl  *innercolumn_pos_y		= arg_dbl0(NULL, "innercolumn_pos_y","<n>","\t\ty pos of the inner column relative to the modules, in cm. Def 0");
@@ -489,6 +696,8 @@ int main(int argc,char *argv[])
 						gunfile,
 						pmt,
                                                 
+                                                activate_LED,
+                                                emitter_mdom,
                                                 innercolumn_radius,
                                                 innercolumn_pos_x,
                                                 innercolumn_pos_y,
@@ -549,11 +758,14 @@ int main(int argc,char *argv[])
 	distance->dval[0] = 1.0; // here value for mDOM scan with 2*mm safety margin
 	theta->dval[0] = 90.0;
 	phi->dval[0] = 0.0;
-	wavelen->dval[0] = 470.0;	// [nm]
+	wavelen->dval[0] = 405.0;	// [nm]
 	events->ival[0] = 0;
 	gunfile->filename[0] = "mdom.gps";
 	pmt->ival[0] = 0;			// use new R12199 version as default
 	
+        //activate_LED->sval[0] = "11111111111111";
+        activate_LED->sval[0] = "0000000000"; //default no LEDs
+        emitter_mdom->ival[0] = 0;
 	innercolumn_radius->dval[0] = 15; //cm
 	innercolumn_pos_x->dval[0] = 0; //cm
 	innercolumn_pos_y->dval[0] = 0; //cm
@@ -640,6 +852,20 @@ int main(int argc,char *argv[])
 	gsimevents = events->ival[0];
 	ggunfilename = gunfile->filename[0];
 	gPMT = pmt->ival[0];
+        
+        //G4cout << "************+++++++++++++ > "<< activate_LED->sval[0].length() << G4endl;
+        if (strlen(activate_LED->sval[0]) > 10) {
+            G4cout << "FATAL ERROR: LEDs max number is so far 10!" << G4endl;
+            goto hell;
+        } else {
+            gActivateLED = activate_LED->sval[0];
+        }
+        if (emitter_mdom->ival[0] >= n_mDOMs->ival[0]) {
+            G4cout << "FATAL ERROR: emitter mDOM number should be < nmdoms" << G4endl;
+            goto hell;
+        } else {
+            gEmitter_mdom = emitter_mdom->ival[0];
+        }
         
         gInnercolumnradius = innercolumn_radius->dval[0]*cm;
         gInnercolumn_pos_x = innercolumn_pos_x->dval[0]*cm;

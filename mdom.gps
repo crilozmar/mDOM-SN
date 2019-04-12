@@ -16,7 +16,7 @@
 
 
 /gps/particle opticalphoton
-/gps/energy 2.6 eV
+/gps/energy 2.6 eV 
 
 # new radiaton plane layout
 /gps/pos/type Plane
