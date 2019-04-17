@@ -49,13 +49,16 @@ G4double gHeight; // cylindrical world
 G4int	gDepthpos;
 G4int gneutroncapture;
 
+G4ThreeVector gLEDpos;
 G4int gEmitter_mdom;
 const char*     gActivateLED;
 G4double gInnercolumnradius;
 G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
 G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
-G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
-G4double gInnercolumn_be_inv;
+//G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
+G4double gInnercolumn_b_inv;
+G4double gZshift;
+G4int gbulk_ice;
 
 G4double	gscintYield;
 G4double	gscintTimeConst;
@@ -79,7 +82,7 @@ G4double	gDistance;
 G4double	gBeamDiam;
 G4double	gtheta;
 G4double	gphi;
-G4double    gwavelen;
+G4double        gwavelen;
 G4String	gfilename;
 G4String	gEvent2Reconstruct;
 G4String	gHittype;
@@ -414,8 +417,8 @@ void LED_Definition()
             }
             
             rho = dist * sin_theta;//Projektion des Ortsvektors auf die Symmetrieebene zwischen den Halbkugeln
-            posXp = rho * cos_phi + gInnercolumn_pos_x * totalDOMsize;
-            posYp = rho * sin_phi + gInnercolumn_pos_y * totalDOMsize;
+            posXp = rho * cos_phi; // + gInnercolumn_pos_x * totalDOMsize;
+            posYp = rho * sin_phi; //+ gInnercolumn_pos_y * totalDOMsize;
             posZp = dist * cos_theta;
             
             G4double gmDOMTiltingAngle_x = 0;
@@ -438,11 +441,16 @@ void LED_Definition()
             cos_theta_p = cos(theta_p);//Vektor auf die Oberfl?che der Halbkugel
             sin_theta_p = sin(theta_p);//Vektor auf die Oberfl?che der Halbkugel
             
+            
             if (gn_mDOMs % 2 == 0) {
-                    posZ = posZ + gmdomseparation*(gn_mDOMs/2-gEmitter_mdom-1./2.);
+                gZshift = gmdomseparation*(gn_mDOMs/2-gEmitter_mdom-1./2.);
             } else {
-                    posZ = posZ + gmdomseparation*(gn_mDOMs/2-gEmitter_mdom);
+                gZshift = gmdomseparation*(gn_mDOMs/2-gEmitter_mdom);
             }
+            posZ = posZ + gZshift;
+            G4cout << "aaaaaaaaaaaaaaaaaaaaaaaaaa" <<G4endl;
+            G4cout << posX/m << " " << posY/m << " " << posZ/m << G4endl;
+            gLEDpos = G4ThreeVector(posX, posY, posZ);
             
             command.str("");
             command << "/gps/pos/centre " << posX << " " << posY << " " << posZ << " mm";
@@ -450,7 +458,9 @@ void LED_Definition()
             
             command.str("");
             command << "/gps/particle opticalphoton";
+            //command << "/gps/particle geantino";
             UI->ApplyCommand(command.str());
+            
             
             command.str("");
             command << "/gps/source/intensity 1";
@@ -472,7 +482,7 @@ void LED_Definition()
             command << "/gps/ang/mintheta 0 deg";
             UI->ApplyCommand(command.str());
             
-            G4double gMaxTheta = 10;
+            G4double gMaxTheta = 89; //when too close to 90, give photons that directly hit the structure and do not propagate... photons with theta=90 are anyway weighed very low
             command.str("");
             command << "/gps/ang/maxtheta " << gMaxTheta << " deg";
             UI->ApplyCommand(command.str());
@@ -632,13 +642,14 @@ int main(int argc,char *argv[])
 	struct arg_file *gunfile	= arg_file0("gG","gun","<file.txt>","\t\tfile containing GPS parameters");
 	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]"); 
         
-        struct arg_str *activate_LED = arg_str0("", "LED", "<e.g. 1001101010>", "\t\tactivating (1 - default) or deactivating (0) the LEDs (0 - 10)");
+        struct arg_str *activate_LED = arg_str0(NULL, "LED", "<e.g. 1001101010>", "\t\tactivating (1 - default) or deactivating (0) the LEDs (0 - 10)");
 	struct arg_int  *emitter_mdom		= arg_int0(NULL, "emitter_mdom","<n>","\t\tEmitter mDOM, default 0"); 
-	struct arg_dbl  *innercolumn_radius		= arg_dbl0(NULL, "innercolumn_radius","<n>","\t\tRadius of inner ice column in cm, def. 15");
+	struct arg_dbl  *innercolumn_radius		= arg_dbl0(NULL, "innercolumn_radius","<n>","\t\tRadius of inner ice column in cm, def. 7.5");
         struct arg_dbl  *innercolumn_pos_x		= arg_dbl0(NULL, "innercolumn_pos_x","<n>","\t\tx pos of the inner column relative to the modules, in cm. Def 0");
         struct arg_dbl  *innercolumn_pos_y		= arg_dbl0(NULL, "innercolumn_pos_y","<n>","\t\ty pos of the inner column relative to the modules, in cm. Def 0");
-	struct arg_dbl  *innercolumn_av_costheta		= arg_dbl0(NULL, "innercolumn_av_costheta","<n>","\t\tAv costheta for mie scattering in inner column"); 
-	struct arg_dbl  *innercolumn_be_inv		= arg_dbl0(NULL, "innercolumn_be_inv","<n>","\t\tEffective scattering lenght for the inner column in cm. Def 100"); 
+	//struct arg_dbl  *innercolumn_av_costheta		= arg_dbl0(NULL, "innercolumn_av_costheta","<n>","\t\tAv costheta for mie scattering in inner column"); 
+	struct arg_dbl  *innercolumn_b_inv		= arg_dbl0(NULL, "innercolumn_b_inv","<n>","\t\tEffective scattering lenght for the inner column in cm. Def 100"); 
+        struct arg_int  *bulk_ice		= arg_int0(NULL, "bulk_ice","<n>","\t\tIceProperties in bulk ice (1) or not (0). If 0, --depthpos does nothing. Default should always be 1"); 
         
 	struct arg_dbl  *mdomseparation		= arg_dbl0(NULL, "msep,mdomseparation","<n>","\t\t\tSeparation between mDOMs (center) in case that there is more than one in meters");
 	struct arg_int  *n_mDOMs		= arg_int0(NULL, "nmdoms,n_mdoms","<n>","\t\tNumber of mDOMs in the simulation (0 = 1)"); 
@@ -687,56 +698,57 @@ int main(int argc,char *argv[])
 	struct arg_end  *end		= arg_end(20);
 	
 	void* argtable[] = {worldsize,
-						diameter,
-						distance,
-						xpos, ypos, zpos,
-						theta, phi,
-						wavelen,
-						events,
-						gunfile,
-						pmt,
-                                                
-                                                activate_LED,
-                                                emitter_mdom,
-                                                innercolumn_radius,
-                                                innercolumn_pos_x,
-                                                innercolumn_pos_y,
-                                                innercolumn_av_costheta,
-                                                innercolumn_be_inv,
-						
-						mdomseparation,
-						n_mDOMs,
-						
-						glass,
-						gel,
-						conemat,
-						holdercol,
-						dom,
-						cone_ang,
-						mdomharness,
-						ropes,
-						
-						scintYield,
-						scintTimeConst,
-						scintSpectrum,
-						Temperature,
-						
-						environment,
-						outputfile,
-						hittype,
-						interactive,
-						visual,
-						nohead,
-						depthpos,
-						SN, SNGun,neutroncapture,
-						Sun_e, Sun_mu, Sun_tau,
-						SNmeanEnergy,
-						alpha,
-						reconstruction,
-						event2reconstruct,
-						QEfile, QE, wQE,
-						help, end};
-						
+                            diameter,
+                            distance,
+                            xpos, ypos, zpos,
+                            theta, phi,
+                            wavelen,
+                            events,
+                            gunfile,
+                            pmt,
+                            
+                            activate_LED,
+                            emitter_mdom,
+                            innercolumn_radius,
+                            innercolumn_pos_x,
+                            innercolumn_pos_y,
+                            //innercolumn_av_costheta,
+                            innercolumn_b_inv,
+                            bulk_ice,
+                            
+                            mdomseparation,
+                            n_mDOMs,
+                            
+                            glass,
+                            gel,
+                            conemat,
+                            holdercol,
+                            dom,
+                            cone_ang,
+                            mdomharness,
+                            ropes,
+                            
+                            scintYield,
+                            scintTimeConst,
+                            scintSpectrum,
+                            Temperature,
+                            
+                            environment,
+                            outputfile,
+                            hittype,
+                            interactive,
+                            visual,
+                            nohead,
+                            depthpos,
+                            SN, SNGun,neutroncapture,
+                            Sun_e, Sun_mu, Sun_tau,
+                            SNmeanEnergy,
+                            alpha,
+                            reconstruction,
+                            event2reconstruct,
+                            QEfile, QE, wQE,
+                            help, end};
+
 	const char* progname = "mdom";
 	int nerrors;
 	int exitcode=0;
@@ -766,13 +778,14 @@ int main(int argc,char *argv[])
         //activate_LED->sval[0] = "11111111111111";
         activate_LED->sval[0] = "0000000000"; //default no LEDs
         emitter_mdom->ival[0] = 0;
-	innercolumn_radius->dval[0] = 15; //cm
+	innercolumn_radius->dval[0] = 7.5; //cm
 	innercolumn_pos_x->dval[0] = 0; //cm
 	innercolumn_pos_y->dval[0] = 0; //cm
-	innercolumn_av_costheta->dval[0] = 0.95; //cm
-	innercolumn_be_inv->dval[0] = 100; //cm
+	//innercolumn_av_costheta->dval[0] = 0.95; //
+	innercolumn_b_inv->dval[0] = 100; //cm
+	bulk_ice->ival[0] = 1; //by default, scattering and absorption in bulk ice
 	
-	mdomseparation-> dval[0] = 2.4; //m
+	mdomseparation-> dval[0] = 2.7; //m
 	n_mDOMs->ival[0] = 1;
 	
 	glass->ival[0] = 0;	// use VITROVEX as default
@@ -783,8 +796,8 @@ int main(int argc,char *argv[])
 	
 	cone_ang->dval[0] = 51.0; // [degrees]	
 	
-	mdomharness->ival[0] = 1;
-	ropes->ival[0]=1;
+	mdomharness->ival[0] = 0;
+	ropes->ival[0]=0;
 	
 	scintYield->dval[0] = 57.0;
 	scintTimeConst->dval[0] = 300000.0;
@@ -796,7 +809,7 @@ int main(int argc,char *argv[])
 	SNmeanEnergy->dval[0] = 0.0; //<0.1 means do not take this parameter into account
 	alpha->dval[0] = 3.0; //default alpha when using SNmeanEnergy
 	// My stuff
-	depthpos->ival[0] = 88; //Pos that have always been used of cleanest ice. Dirtiest ice is pos = 66
+	depthpos->ival[0] = 75; //Pos that have always been used of cleanest ice. Dirtiest ice is pos = 66
 	environment->ival[0] = 2;	// use spice as default
 	SN->ival[0] = 0; // Use heavy SN as default
 	SNGun->ival[0]=0; //gps by default
@@ -853,15 +866,14 @@ int main(int argc,char *argv[])
 	ggunfilename = gunfile->filename[0];
 	gPMT = pmt->ival[0];
         
-        //G4cout << "************+++++++++++++ > "<< activate_LED->sval[0].length() << G4endl;
         if (strlen(activate_LED->sval[0]) > 10) {
-            G4cout << "FATAL ERROR: LEDs max number is so far 10!" << G4endl;
+            G4cout << "FATAL ERROR - INPUT PARAMETER: LEDs max number is so far 10!" << G4endl;
             goto hell;
         } else {
             gActivateLED = activate_LED->sval[0];
         }
         if (emitter_mdom->ival[0] >= n_mDOMs->ival[0]) {
-            G4cout << "FATAL ERROR: emitter mDOM number should be < nmdoms" << G4endl;
+            G4cout << "FATAL ERROR - INPUT PARAMETER: emitter mDOM number should be < nmdoms" << G4endl;
             goto hell;
         } else {
             gEmitter_mdom = emitter_mdom->ival[0];
@@ -870,13 +882,19 @@ int main(int argc,char *argv[])
         gInnercolumnradius = innercolumn_radius->dval[0]*cm;
         gInnercolumn_pos_x = innercolumn_pos_x->dval[0]*cm;
         gInnercolumn_pos_y = innercolumn_pos_y->dval[0]*cm;
-        if ((innercolumn_av_costheta->dval[0] > 1) || (innercolumn_av_costheta->dval[0] < 0)) {
+        /*if ((innercolumn_av_costheta->dval[0] > 1) || (innercolumn_av_costheta->dval[0] < 0)) {
             G4cout << "FATAL ERROR: innercolumn_av_costheta must be between 0 and 1!" << G4endl;
             goto hell;
         } else {
             gInnercolumn_av_costheta = innercolumn_av_costheta->dval[0];
+        }*/
+        gInnercolumn_b_inv = innercolumn_b_inv->dval[0] * cm;
+        if ((bulk_ice->ival[0] != 0) && (bulk_ice->ival[0]) != 1) {
+            G4cout << "FATAL ERROR - INPUT PARAMETER: bulk_ice must be between 0 and 1!" << G4endl;
+            goto hell;
+        } else {
+            gbulk_ice = bulk_ice->ival[0];
         }
-        gInnercolumn_be_inv = innercolumn_be_inv->dval[0] * cm;
 
 	gmdomseparation= mdomseparation->dval[0]*m;
 	gn_mDOMs = n_mDOMs->ival[0];
@@ -910,7 +928,7 @@ int main(int argc,char *argv[])
 	
 	if ((Sun_e->count>0) || (Sun_mu->count>0) || (Sun_tau->count>0) ){
 		if ((Sun_e->count>0) && ((Sun_mu->count>0) || (Sun_tau->count>0))) {
-			G4cout << "FATAL ERROR: choose between nu_e or nu_mu/tau!!!" << G4endl;
+			G4cout << "FATAL ERROR - INPUT PARAMETER: choose between nu_e or nu_mu/tau!!!" << G4endl;
 			goto hell;
 		}
 		gSNGun = 3;
@@ -951,7 +969,7 @@ int main(int argc,char *argv[])
 			gnufluxname = "nu_GCD.cfg";
 			gnubarfluxname = "nubar_GCD.cfg";
 		} else {
-			G4cout << "ERROR!! Choose a valid SN model" << G4endl;
+			G4cout << "ERROR - INPUT PARAMETER!! Choose a valid SN model" << G4endl;
 			goto hell;
 		}
 	} else {
@@ -970,7 +988,7 @@ int main(int argc,char *argv[])
 		gQE = false;
 		gQEweigh = false;
 	} else {
-		G4cout << "FATAL ERROR: can not choose QE killing event (--QE) and just weighing without killing (--wQE) at the same time" << G4endl;
+		G4cout << "FATAL ERROR - INPUT PARAMETER: can not choose QE killing event (--QE) and just weighing without killing (--wQE) at the same time" << G4endl;
 		goto hell;
 	}
 

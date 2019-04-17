@@ -22,6 +22,8 @@ extern G4bool gQEweigh;
 extern std::vector<double> readColumnDouble (G4String fn, int col);
 extern G4int gSNGun;
 extern G4int gneutroncapture;
+extern G4double gZshift;
+extern G4ThreeVector gLEDpos;
 
 mdomSteppingAction::mdomSteppingAction()
 { 
@@ -87,12 +89,22 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 	
 	// Check if optical photon is about to hit a photocathode, if so, destroy it and save the hit
 	if ( aTrack->GetDefinition()->GetParticleName() == "opticalphoton" ) {
-		if ( aTrack->GetTrackStatus() != fStopAndKill ) {
-			if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
-				Ekin = (aTrack->GetKineticEnergy());
-				lambda = h*c/Ekin;
-				if ( (!gQE) || ( (QEcheck(lambda)) && (gQE)) || (gQEweigh)) {
-					HitStat hitStat;
+                    //for testing generation
+            /*
+                    Test_HitStats hitStat;
+                    const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
+                    const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
+                    G4double ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
+                    hitStat.reltheta = ang;
+                    gAnalysisManager.Test_hitStats.push_back(hitStat);
+                    aTrack->SetTrackStatus(fStopAndKill);
+                    */
+            if ( aTrack->GetTrackStatus() != fStopAndKill ) {
+                if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
+                    Ekin = (aTrack->GetKineticEnergy());
+                    lambda = h*c/Ekin;
+                    if ( (!gQE) || ( (QEcheck(lambda)) && (gQE)) || (gQEweigh)) {
+                        HitStat hitStat;
                     G4int mothercode;
                     G4int trackID = aTrack->GetTrackID();
                     bool debugparameter = false;
@@ -128,28 +140,35 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     } else {
                         mothercode = 0;
                     }
-					//G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
-					//G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
-					n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
-					//G4cout <<"DEBUG: " << n_module.at(2) << G4endl;
-					n = explode(aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName(),'_');
-					hitStat.moduleNr = atoi(n_module.at(2));
-					hitStat.pmtNr = atoi(n.at(1));
-                    hitStat.mothercode = mothercode;
-	//				G4cout << hitStat.pmtNr << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getTheta() << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getPhi() << "\t" << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetObjectTranslation().getR() << G4endl;
-					hitStat.position = aTrack->GetPosition();
-					hitStat.wavelen = lambda;
-					hitStat.hit_time = aTrack->GetGlobalTime();
-					if ((gQE) || (gQEweigh)) {
-                        QEcheck(lambda);
-                        hitStat.QEprob = probability;
-					} else { 
-                        hitStat.QEprob = 1;
-					}
-					gAnalysisManager.hitStats.push_back(hitStat);
-				}
-				aTrack->SetTrackStatus(fStopAndKill);		// kills counted photon to prevent scattering and double-counting 
+                        const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
+                        const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
+                        //G4cout << vtx/m << G4endl;
+                        //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
+                        G4double ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
+                        //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+                        //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
+                        n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
+                        //G4cout <<"DEBUG: " << n_module.at(2) << G4endl;
+                        n = explode(aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName(),'_');
+                        hitStat.moduleNr = atoi(n_module.at(2));
+                        hitStat.pmtNr = atoi(n.at(1));
+                        hitStat.mothercode = mothercode;
+
+                        hitStat.position = aTrack->GetPosition();
+                        hitStat.wavelen = lambda;
+                        hitStat.hit_time = aTrack->GetGlobalTime();
+                        hitStat.reltheta = ang;
+                        if ((gQE) || (gQEweigh)) {
+                            QEcheck(lambda);
+                            hitStat.QEprob = probability;
+                        } else { 
+                            hitStat.QEprob = 1;
 			}
+			gAnalysisManager.hitStats.push_back(hitStat);
+                    }
+                    aTrack->SetTrackStatus(fStopAndKill);		// kills counted photon to prevent scattering and double-counting 
+                    
+                    }
 		}
 	}
 	//kill everything which hits the photocathode that is not an optical photon...

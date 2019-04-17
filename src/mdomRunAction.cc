@@ -51,7 +51,9 @@ void mdomRunAction::BeginOfRunAction(const G4Run*)
     filename_gamma2MeV.append("_gamma2MeV.txt");
     filename_gamma8MeV.append("_gamma8MeV.txt");
     
-    gAnalysisManager.maininfofile.open(infofilename, std::ios::out| std::ios::trunc); 
+    if (gSNGun != 0) {
+        gAnalysisManager.maininfofile.open(infofilename, std::ios::out| std::ios::trunc); 
+    }
     gAnalysisManager.datafile.open(gfilename, std::ios::out| std::ios::trunc); 
 
     if (gSNGun == 2) {
@@ -90,7 +92,7 @@ void mdomRunAction::EndOfRunAction(const G4Run*)
 	// Close output data file
 	gAnalysisManager.datafile.close();
   
-	G4cout << "DEBUG: " << gAnalysisManager.hitStats.size() << G4endl;
+	//G4cout << "DEBUG: " << gAnalysisManager.hitStats.size() << G4endl;
   
 }
 

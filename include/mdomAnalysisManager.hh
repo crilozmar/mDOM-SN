@@ -21,6 +21,7 @@ struct HitStat {
 	G4double wavelen;
 	G4ThreeVector position;
 	G4double QEprob;
+        G4double reltheta; //between LED dir and photon dir
 };
 
 struct EvtStat {
@@ -46,6 +47,12 @@ struct FamilyTrack {
     
 };
 
+struct Test_HitStats {
+    Test_HitStats() {};
+    ~Test_HitStats() {};
+    G4double reltheta; //between LED dir and photon dir
+};
+
 
 class MdomAnalysisManager
 {
@@ -62,6 +69,8 @@ class MdomAnalysisManager
         void Helper_ResetEvent(EvtStat& this_evtStat);
         void ClasifyTracks_New(G4String particle, G4double Energy, G4int firstID);
         void ClasifyTracks_AddTrack(G4String particle, G4int trackID, G4int parentID);
+        void testwritter(std::fstream& thisfile);
+
 
 		G4double nuTime;
 		G4double nuMeanEnergy;
@@ -82,6 +91,7 @@ class MdomAnalysisManager
 		G4double photonPhi;
 		G4double photonR;
 		std::vector<HitStat> hitStats;
+                std::vector<Test_HitStats> Test_hitStats;
         std::vector<FamilyTrack> AllFamilyTracks;
 		G4double TotHits[24];
 		// run quantities

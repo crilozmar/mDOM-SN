@@ -16,9 +16,18 @@ extern G4bool gQE;
 extern G4bool gQEweigh;
 extern G4int 	gSNGun;
 extern G4double	gDistance;
+extern G4int	gsimevents;
+
 
 extern G4int	gn_mDOMs;
 extern G4int gneutroncapture;
+extern const char* gActivateLED;
+extern G4double gInnercolumnradius;
+extern G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
+extern G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
+//extern G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
+extern G4double gInnercolumn_b_inv;
+extern G4int gEmitter_mdom;
 
 
 MdomAnalysisManager::MdomAnalysisManager(){
@@ -148,7 +157,14 @@ void MdomAnalysisManager::AnalyzeEvent() {
     } */
     
     
-    
+    //if testing:
+    /*
+    if ((G4int)Test_hitStats.size() > 0) {
+        testwritter(datafile);
+    } 
+    Test_hitStats.clear();
+    */
+    // if not:
     if ((G4int)hitStats.size() > 0) {
         Writer_InfoFile();
         if ((gSNGun == 2) && (gneutroncapture > 0)) {
@@ -227,43 +243,40 @@ G4String nu;
 	part = "e-";
 	nu = "nu";
   }
-  if (gSNGun == 0) {
-	realdistance = gDistance*m;// - ((0.5 * 356.0)/1000.0)*m;
-  datafile << "# World with "<< gn_mDOMs << " mDOMs" << G4endl;
-  datafile << "# Gammas at "<< realdistance/m << " meters" <<G4endl;
-  datafile << "# RealDistance [m] | Vertex Position (X, Y, Z) [m] | Primary direction (Px,Py,Pz)  |Total hits | ModulesHit | PMTsHit |";
-  					if (gQEweigh) {
-						datafile << " Total QE prob |";
-					}
-					datafile <<"...for PMT hit...| Module number | PMT number | Hits in that PMT |";
-					datafile << "...for Hit...";
-					if (gQEweigh) {
-						datafile << " QE prob |";
-					}
-					datafile << " hit time |";
-					if (gQEweigh) {
-						datafile << "...end of hit loop...| Total QE prob in PMT |" << G4endl;
-					}
-  datafile << "#"<< G4endl;
-  datafile << "#"<< G4endl;
-  }
-  else if (gSNGun == 1 || gSNGun == 2  || gSNGun == 3) {
-  maininfofile << "#"<< G4endl;
-  maininfofile << "# Time of Flux [s] | Mean energy of "<<nu<<" | "<<nu<<" energy | costheta of "<<part<<" from z dir | "<<part<<" energy | event weigh | Vertex Position (X, Y, Z) [m] | Primary direction (Px,Py,Pz)" << G4endl;
-  maininfofile << "#" << G4endl;
   
-  HelpTheHeader(datafile);
-  if (gSNGun == 2) {
-      if (gneutroncapture == 3) {
-        HelpTheHeader(datafile_gammas2MeV);
-        HelpTheHeader(datafile_gammas8MeV);
-      }else if (gneutroncapture == 1) {
-          HelpTheHeader(datafile_gammas2MeV);
-      }else if (gneutroncapture == 2) {
-          HelpTheHeader(datafile_gammas8MeV);
-      }
+  if (gSNGun == 0) {
+    realdistance = gDistance*m;// - ((0.5 * 356.0)/1000.0)*m;
+    datafile << "# World with "<< gn_mDOMs << " mDOMs" << G4endl;
+    datafile << "# Total photons -> " << gsimevents << G4endl;
+    datafile << "# Activated LEDs: "<< gActivateLED << " in mDOM " << gEmitter_mdom << G4endl;
+    datafile << "# Column radius [cm] " << gInnercolumnradius/cm << " | Column shift x,y [cm] " << gInnercolumn_pos_x/cm << "," << gInnercolumn_pos_y/cm << " | Effective sca. lenght in column [cm] " << gInnercolumn_b_inv;
+    if (gQEweigh) {
+        datafile << " | Total QE prob ";
     }
+    datafile << G4endl;
+    datafile <<"# Module number | PMT number | hit time | theta (wrt LED) [rad]";
+    if (gQEweigh) {
+            datafile << "| QE prob";
+    }
+    datafile << G4endl;
   }
+  
+  else if (gSNGun == 1 || gSNGun == 2  || gSNGun == 3) {
+    maininfofile << "#"<< G4endl;
+    maininfofile << "# Time of Flux [s] | Mean energy of "<<nu<<" | "<<nu<<" energy | costheta of "<<part<<" from z dir | "<<part<<" energy | event weigh | Vertex Position (X, Y, Z) [m] | Primary direction (Px,Py,Pz)" << G4endl;
+    maininfofile << "#" << G4endl;
+    HelpTheHeader(datafile);
+    if (gSNGun == 2) {
+        if (gneutroncapture == 3) {
+            HelpTheHeader(datafile_gammas2MeV);
+            HelpTheHeader(datafile_gammas8MeV);
+        }else if (gneutroncapture == 1) {
+            HelpTheHeader(datafile_gammas2MeV);
+        }else if (gneutroncapture == 2) {
+            HelpTheHeader(datafile_gammas8MeV);
+        }
+        }
+    }
 }
 
 void MdomAnalysisManager::HelpTheHeader(std::fstream& thisfile)
@@ -308,6 +321,7 @@ void MdomAnalysisManager::Writer_InfoFile() {
 
 void MdomAnalysisManager::Writer_data(std::fstream& thisfile, EvtStat& this_evtStat)
 {
+    if (gSNGun != 0) {
     thisfile << this_evtStat.nrHitTot << "\t";
     thisfile << this_evtStat.nrHitMod << "\t";
     thisfile << this_evtStat.nrHitPMTs << "\t";
@@ -315,31 +329,38 @@ void MdomAnalysisManager::Writer_data(std::fstream& thisfile, EvtStat& this_evtS
         G4double sum = 0;
         for (unsigned int i = 0 ; i<hitStats.size(); i++) {
             sum = sum + hitStats[i].QEprob;
-        }
+            }
         thisfile << sum << "\t";
-        
-    }
+        }
     thisfile << "\t";
+    }
     for ( int j=0; j<(G4int)this_evtStat.hitsPMTs.size(); j++ ) {
         thisfile << std::get<0>(this_evtStat.hitsPMTs[j]) << "\t";
         thisfile << std::get<1>(this_evtStat.hitsPMTs[j]) << "\t";
-        thisfile << std::get<2>(this_evtStat.hitsPMTs[j]) << "\t";
-        G4double PMTprob= 0;
+        if (gSNGun != 0) {
+            thisfile << std::get<2>(this_evtStat.hitsPMTs[j]) << "\t";
+        }
         for (int i=0; i<(G4int)hitStats.size(); i++) {
             if (this_evtStat.mothercode == hitStats[i].mothercode) {
                 if ( (std::get<0>(this_evtStat.hitsPMTs[j]) == hitStats[i].moduleNr) && (std::get<1>(this_evtStat.hitsPMTs[j]) == hitStats[i].pmtNr) ) {
                     //thisfile << hitStats[i].wavelen/nm << "\t";
+                    thisfile << hitStats[i].hit_time/ns << "\t";
+                    thisfile << hitStats[i].reltheta/rad << "\t";
                     if (gQEweigh) {
-                        PMTprob = PMTprob + hitStats[i].QEprob;
                         thisfile << hitStats[i].QEprob << "\t";
                         }
-                    thisfile << hitStats[i].hit_time/ns << "\t";
                     }
-            }
-        if (gQEweigh) {
-            thisfile << PMTprob << "\t\t";
             }
         }
     }
     thisfile << G4endl;
 }
+
+void MdomAnalysisManager::testwritter(std::fstream& thisfile)
+{
+    for (int i=0; i<(G4int)Test_hitStats.size(); i++) {
+        thisfile << Test_hitStats[i].reltheta/rad << "\t";
+    }
+    thisfile << G4endl;
+}
+
