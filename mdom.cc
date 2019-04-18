@@ -448,8 +448,6 @@ void LED_Definition()
                 gZshift = gmdomseparation*(gn_mDOMs/2-gEmitter_mdom);
             }
             posZ = posZ + gZshift;
-            G4cout << "aaaaaaaaaaaaaaaaaaaaaaaaaa" <<G4endl;
-            G4cout << posX/m << " " << posY/m << " " << posZ/m << G4endl;
             gLEDpos = G4ThreeVector(posX, posY, posZ);
             
             command.str("");
@@ -563,6 +561,10 @@ int mdom() {
 	UI = G4UImanager::GetUIpointer();
 	
 	UI->ApplyCommand("/tracking/verbose 0");
+	UI->ApplyCommand("/control/verbose 1");
+	UI->ApplyCommand("/run/verbose 2");
+	UI->ApplyCommand("/event/verbose 0");
+
 
 	if (gReconstruction > 0) {
 		ReconstructionOfEvents();
