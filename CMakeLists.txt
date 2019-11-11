@@ -16,8 +16,8 @@ else()
 endif()
 
 # try to use ROOT libraries
-set (CMAKE_MODULE_PATH /iceserver/geant4.10.02.p01-ubuntu_14.04_64bit-LA/lib/Geant4-10.2.1/Modules/)
-find_package(ROOT)
+set (CMAKE_MODULE_PATH /Applic.ZIV/CentOS7/software/p0kapp/software/geant4/10.4.02.p01/lib64/Geant4-10.2.1/Modules/)
+#find_package(ROOT)
 
 # sets search paths for include
 include(${Geant4_USE_FILE})
@@ -28,6 +28,9 @@ include_directories(${ROOT_INCLUDE_DIR})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
+
+# manually add argtable
+LINK_DIRECTORIES(/Applic.ZIV/CentOS7/software/p0kapp/software/lib)
 
 # details for the finished binary
 add_executable(mdom mdom.cc ${sources} ${headers})

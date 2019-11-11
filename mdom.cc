@@ -791,7 +791,7 @@ int main(int argc,char *argv[])
 	n_mDOMs->ival[0] = 1;
 	
 	glass->ival[0] = 0;	// use VITROVEX as default
-	gel->ival[0] = 2;	// IceCube (SQI) as default	
+	gel->ival[0] = 1;	// Chiba gel as default	
 	conemat->ival[0] = 0;	// use Alemco V95 as default
 	holdercol->ival[0] = 0;	// use classic black holder as default
 	dom->ival[0] = 0;	// use mDOM as default
