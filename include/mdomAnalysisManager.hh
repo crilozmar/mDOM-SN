@@ -50,6 +50,7 @@ struct FamilyTrack {
 struct Test_HitStats {
     Test_HitStats() {};
     ~Test_HitStats() {};
+    G4double globtheta; //global theta angle
     G4double reltheta; //between LED dir and photon dir
 };
 

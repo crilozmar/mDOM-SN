@@ -163,7 +163,7 @@ void MdomAnalysisManager::AnalyzeEvent() {
         testwritter(datafile);
     } 
     Test_hitStats.clear();
-    */
+     */
     // if not:
     if ((G4int)hitStats.size() > 0) {
         Writer_InfoFile();
@@ -185,21 +185,22 @@ void MdomAnalysisManager::AnalyzeEvent() {
             Writer_data(datafile,evtStat0);
         }
     }
+    
 }
 
 
 void MdomAnalysisManager::Helper_AnalyzeEvent(EvtStat& this_evtStat)
 {
-	std::vector<G4int> modulescounter;
-	modulescounter.resize(gn_mDOMs);
-	for (int k=0; k<gn_mDOMs; k++) {
-		for (int i=0; i<24; i++) {
-			std::tuple<G4int,G4int,G4int> hitsPMT;
-			std::get<0>(hitsPMT) = k;   
-			std::get<1>(hitsPMT) = i;   
-			std::get<2>(hitsPMT) = 0; 
-			G4bool hit = false;
-			for ( int j=0; j<(G4int)hitStats.size(); j++ ) {
+    std::vector<G4int> modulescounter;
+    modulescounter.resize(gn_mDOMs);
+    for (int k=0; k<gn_mDOMs; k++) {
+        for (int i=0; i<24; i++) {
+            std::tuple<G4int,G4int,G4int> hitsPMT;
+            std::get<0>(hitsPMT) = k;   
+            std::get<1>(hitsPMT) = i;   
+            std::get<2>(hitsPMT) = 0; 
+            G4bool hit = false;
+            for ( int j=0; j<(G4int)hitStats.size(); j++ ) {
                 if (hitStats[j].mothercode == this_evtStat.mothercode) {
                     if ( (hitStats[j].moduleNr == k) && (hitStats[j].pmtNr == i) ) {
                         this_evtStat.nrHitTot += 1;
@@ -214,11 +215,10 @@ void MdomAnalysisManager::Helper_AnalyzeEvent(EvtStat& this_evtStat)
                         } 
                     } 
                 }
-			} 
-		if (std::get<2>(hitsPMT) != 0 ) this_evtStat.hitsPMTs.push_back(hitsPMT);
-		}
-
-	}
+            } 
+            if (std::get<2>(hitsPMT) != 0 ) this_evtStat.hitsPMTs.push_back(hitsPMT);
+        }
+    }
 
 }
 
@@ -360,6 +360,7 @@ void MdomAnalysisManager::testwritter(std::fstream& thisfile)
 {
     for (int i=0; i<(G4int)Test_hitStats.size(); i++) {
         thisfile << Test_hitStats[i].reltheta/rad << "\t";
+        thisfile << Test_hitStats[i].globtheta/rad << "\t";
     }
     thisfile << G4endl;
 }

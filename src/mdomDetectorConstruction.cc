@@ -77,12 +77,14 @@ extern std::vector<G4String> explode (G4String s, char d);
 double hc_eVnm = 1239.84193; // h*c in eV * nm
 G4double hc_eVnm_w_units = 1239.84193*eV*nm; // h*c in eV * nm
 
-// defining mDOM dimensions:
-G4double GlasOutRad = 0.5*353*mm;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
-G4double GlasThick = 13*mm;			// maximum glass thickness
-G4double GlasInRad = GlasOutRad - GlasThick;
-G4double CylHigh = 27.5*mm;			// height of cylindrical part of glass half-vessel
-G4double GelThick = 2*mm;			// distance between inner glass surface and holding structure, filled with gel
+// defining mDOM dimensions: (the ones that are not needed in the main file)
+extern G4double gGlasOutRad;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
+extern G4double gGlasThick;			// maximum glass thickness
+extern G4double gGlasInRad;
+extern G4double gCylHigh;			// height of cylindrical part of glass half-vessel
+extern G4double gGelThick;			// distance between inner glass surface and holding structure, filled with
+extern G4double gFoamRad;
+// gel
 G4double GelPMT = 2*mm;				// distance between inner glass surface and tip of PMTs
 G4double RefConeDZ = 15*mm;			// half-height of reflector
 G4double MPMTzoffset = 10*mm;		// z-offset of middle PMT circles w.r.t. center of glass sphere
@@ -2928,37 +2930,36 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   //	DOM construction ------------------------------------------------------------------------------------------------------------------------------
   
   //	Glass
-  // 	GlassSphereTop_solid = new G4Sphere("GlassSphereTop solid", 0, GlasOutRad, 0, 2*pi, 0, 0.51*pi);
-  // 	GlassSphereBottom_solid = new G4Sphere("GlassSphereBottom solid", 0, GlasOutRad, 0, 2*pi, 0.49*pi, pi);
-  GlassSphereTop_solid = new G4Ellipsoid("GlassSphereTop solid", GlasOutRad, GlasOutRad, GlasOutRad, -5*mm, GlasOutRad+5*mm);
-  GlassSphereBottom_solid = new G4Ellipsoid("GlassSphereBottom solid",GlasOutRad, GlasOutRad, GlasOutRad, -(GlasOutRad+5*mm), 5*mm);
-  GlassCylinder_solid = new G4Tubs("GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+  // 	GlassSphereTop_solid = new G4Sphere("GlassSphereTop solid", 0, gGlasOutRad, 0, 2*pi, 0, 0.51*pi);
+  // 	GlassSphereBottom_solid = new G4Sphere("GlassSphereBottom solid", 0, gGlasOutRad, 0, 2*pi, 0.49*pi, pi);
+  GlassSphereTop_solid = new G4Ellipsoid("GlassSphereTop solid", gGlasOutRad, gGlasOutRad, gGlasOutRad, -5*mm, gGlasOutRad+5*mm);
+  GlassSphereBottom_solid = new G4Ellipsoid("GlassSphereBottom solid",gGlasOutRad, gGlasOutRad, gGlasOutRad, -(gGlasOutRad+5*mm), 5*mm);
+  GlassCylinder_solid = new G4Tubs("GlassCylinder solid", 0, gGlasOutRad, gCylHigh, 0, 2*pi);
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
   G4UnionSolid* temp_union = new G4UnionSolid("temp", GlassCylinder_solid, GlassSphereTop_solid, transformers);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-gCylHigh));
   Glass_solid = new G4UnionSolid("OM glass body", temp_union, GlassSphereBottom_solid, transformers);
   
   //  Gel
-  // 	GelSphereTop_solid = new G4Sphere("GelSphereTop solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0, 0.51*pi);
-  // 	GelSphereBottom_solid = new G4Sphere("GelSphereBottom solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0.49*pi, pi);
-  GelSphereTop_solid = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-  GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", GlasInRad, GlasInRad, GlasInRad, -(GlasInRad+5*mm), 5*mm);
-  GelCylinder_solid = new G4Tubs("GelCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+  // 	GelSphereTop_solid = new G4Sphere("GelSphereTop solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0, 0.51*pi);
+  // 	GelSphereBottom_solid = new G4Sphere("GelSphereBottom solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0.49*pi, pi);
+  GelSphereTop_solid = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+  GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", gGlasInRad, gGlasInRad, gGlasInRad, -(gGlasInRad+5*mm), 5*mm);
+  GelCylinder_solid = new G4Tubs("GelCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
   G4UnionSolid* temp_union2 = new G4UnionSolid("temp2", GelCylinder_solid, GelSphereTop_solid, transformers);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-gCylHigh));
   Gel_solid = new G4UnionSolid("gel body", temp_union2, GelSphereBottom_solid, transformers);
   
   //  PMT TubeHolder from "foam" primitives & cutting "nests" for PMTs later
-  // 	G4Sphere* FoamSphereTop_solid = new G4Sphere("FoamSphereTop solid", 0, GlasOutRad - GlasThick - GelThick, 0, 2*pi, 0, 0.51*pi);
-  // 	G4Sphere* FoamSphereBottom_solid = new G4Sphere("FoamSphereBottom solid", 0, GlasOutRad - GlasThick - GelThick, 0, 2*pi, 0.49*pi, pi);
-  G4double FoamRad = GlasOutRad - GlasThick - GelThick;
-  G4Ellipsoid* FoamSphereTop_solid = new G4Ellipsoid("FoamSphereTop solid", FoamRad, FoamRad, FoamRad, -5*mm, FoamRad+5*mm);
-  G4Ellipsoid* FoamSphereBottom_solid = new G4Ellipsoid("FoamSphereBottom solid", FoamRad, FoamRad, FoamRad, -(FoamRad+5*mm), 5*mm);		
-  G4Tubs* FoamCylinder_solid = new G4Tubs("FoamCylinder solid", 0, GlasOutRad - GlasThick - GelThick, CylHigh , 0, 2*pi);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+  // 	G4Sphere* FoamSphereTop_solid = new G4Sphere("FoamSphereTop solid", 0, gGlasOutRad - gGlasThick - gGelThick, 0, 2*pi, 0, 0.51*pi);
+  // 	G4Sphere* FoamSphereBottom_solid = new G4Sphere("FoamSphereBottom solid", 0, gGlasOutRad - gGlasThick - gGelThick, 0, 2*pi, 0.49*pi, pi);
+  G4Ellipsoid* FoamSphereTop_solid = new G4Ellipsoid("FoamSphereTop solid", gFoamRad, gFoamRad, gFoamRad, -5*mm, gFoamRad+5*mm);
+  G4Ellipsoid* FoamSphereBottom_solid = new G4Ellipsoid("FoamSphereBottom solid", gFoamRad, gFoamRad, gFoamRad, -(gFoamRad+5*mm), 5*mm);		
+  G4Tubs* FoamCylinder_solid = new G4Tubs("FoamCylinder solid", 0, gGlasOutRad - gGlasThick - gGelThick, gCylHigh , 0, 2*pi);
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
   G4UnionSolid* Foam_TempUnion_solid = new G4UnionSolid("Foam TempUnion solid", FoamCylinder_solid, FoamSphereTop_solid, transformers);
-  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(CylHigh )));
+  transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(gCylHigh )));
   G4UnionSolid* Foam_solid = new G4UnionSolid("Foam solid", Foam_TempUnion_solid, FoamSphereBottom_solid, transformers);
   
   //	Reflective cones for better "beaming" of angular acceptance (RefCone)	
@@ -2997,7 +2998,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   if (OM_type == "mDOM") {
     //Air slice between halfspheres
 //     G4double AirSliceHigh = 0.5*um;
-//     G4Tubs* AirCylinder_solid = new G4Tubs("AirCylinder solid", GlasInRad, GlasOutRad, AirSliceHigh, 0, 2*pi);
+//     G4Tubs* AirCylinder_solid = new G4Tubs("AirCylinder solid", gGlasInRad, gGlasOutRad, AirSliceHigh, 0, 2*pi);
     
     // Producing PMT & RefCone coordinates
     G4double PMT_theta[99], PMT_phi[99], PMT_x[99], PMT_y[99], PMT_z[99], RefCone_x[99], RefCone_y[99], RefCone_z[99]; 
@@ -3008,18 +3009,18 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     G4double RefCone_r;
     
     for (i = 0; i <= 23; i++) {
-      PMT_r = GlasInRad - GelPMT - PMToffset;        // radius for PMT positioning
-      RefCone_r = GlasInRad - GelPMT - PMToffset + RefConeDZ; // radius for RefCone positioning
+      PMT_r = gGlasInRad - GelPMT - PMToffset;        // radius for PMT positioning
+      RefCone_r = gGlasInRad - GelPMT - PMToffset + RefConeDZ; // radius for RefCone positioning
       if (i>=0 && i<=3){
         PMT_theta[i]=33.0*deg;
         PMT_phi[i]=i*90.0*deg+45*deg;
-        PMT_z_offset = CylHigh;
+        PMT_z_offset = gCylHigh;
       }
       if (i>=4 && i<=11){
         PMT_theta[i]=72.0*deg;
         PMT_phi[i]=(22.5+(i-4)*45.0)*deg+45*deg;
 //         PMT_phi[i]=(0+(i-4)*45.0)*deg;
-        PMT_z_offset = CylHigh - MPMTzoffset;
+        PMT_z_offset = gCylHigh - MPMTzoffset;
         PMT_r += MPMTroffset;
            RefCone_r += MPMTroffset;
       }
@@ -3027,7 +3028,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     PMT_theta[i]=108.0*deg;
     //PMT_phi[i]=(i-12)*45.0*deg; //Verdreht
     PMT_phi[i]=(22.5+(i-12)*45.0)*deg+45*deg;
-    PMT_z_offset = - CylHigh + MPMTzoffset;
+    PMT_z_offset = - gCylHigh + MPMTzoffset;
     PMT_r += MPMTroffset;
     RefCone_r += MPMTroffset;
       }
@@ -3035,7 +3036,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
         PMT_theta[i]=147.0*deg;
         //PMT_phi[i]=(22.5+(i-20)*90.0)*deg;//Verdreht
          PMT_phi[i]=(0+(i-20)*90.0)*deg+45*deg;
-        PMT_z_offset = - CylHigh;
+        PMT_z_offset = - gCylHigh;
       } 
       
       //	  G4cout << i << " " << PMT_theta[i] << " " << PMT_phi[i] << G4endl;
@@ -3081,17 +3082,17 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     // reflective cone type1 for spherical part (upper and lowermost rings):
     // old
     // rot = new G4RotationMatrix();
-    // transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    // transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     // RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid, transformers);
     // new
-    RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid, 0, G4ThreeVector(0,0,-(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid, 0, G4ThreeVector(0,0,-(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     
     // reflective cone type 2 for upper central ring:	
-    G4double RefConeType2_r = GlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
+    G4double RefConeType2_r = gGlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
     G4double RefConeType2_rho = RefConeType2_r * sin(72*deg);
     G4double RefConeType2_x = RefConeType2_rho * cos(0*deg);
     G4double RefConeType2_y = RefConeType2_rho * sin(0*deg);
-    G4double RefConeType2_z = RefConeType2_r * cos(72*deg) + CylHigh - MPMTzoffset;
+    G4double RefConeType2_z = RefConeType2_r * cos(72*deg) + gCylHigh - MPMTzoffset;
     
     rot = new G4RotationMatrix();
     rot->rotateY(72*deg);
@@ -3100,11 +3101,11 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     RefConeType2_solid = new G4IntersectionSolid("RefConeType2", Foam_solid, RefConeBasic_solid, transformers);
     
     // reflective cone type 3 for lower central ring:	
-    G4double RefConeType3_r = GlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
+    G4double RefConeType3_r = gGlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
     G4double RefConeType3_rho = RefConeType3_r * sin(108*deg);
     G4double RefConeType3_x = RefConeType3_rho * cos(0*deg);
     G4double RefConeType3_y = RefConeType3_rho * sin(0*deg);
-    G4double RefConeType3_z = RefConeType3_r * cos(108*deg) - CylHigh + MPMTzoffset;
+    G4double RefConeType3_z = RefConeType3_r * cos(108*deg) - gCylHigh + MPMTzoffset;
     
     rot = new G4RotationMatrix();
     rot->rotateY(108*deg);
@@ -3120,11 +3121,11 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 					     RefConeDZ, 0, 2*pi);
     
     // cropping type 2 cone:
-    G4double RefConeCut_r = GlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
+    G4double RefConeCut_r = gGlasInRad - GelPMT - PMToffset + RefConeDZ + MPMTroffset;
     G4double RefConeCut_rho = RefConeCut_r * sin(72*deg);
     G4double RefConeCut_x = RefConeCut_rho * cos(45*deg);
     G4double RefConeCut_y = RefConeCut_rho * sin(45*deg);
-    G4double RefConeCut_z = RefConeCut_r * cos(72*deg) + CylHigh - MPMTzoffset;
+    G4double RefConeCut_z = RefConeCut_r * cos(72*deg) + gCylHigh - MPMTzoffset;
     
     rot = new G4RotationMatrix();
     rot->rotateY(72*deg);
@@ -3151,7 +3152,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     RefConeCut_rho = RefConeCut_r * sin(108*deg);
     RefConeCut_x = RefConeCut_rho * cos(45*deg);
     RefConeCut_y = RefConeCut_rho * sin(45*deg);
-    RefConeCut_z = RefConeCut_r * cos(108*deg) - CylHigh + MPMTzoffset;
+    RefConeCut_z = RefConeCut_r * cos(108*deg) - gCylHigh + MPMTzoffset;
     
     rot = new G4RotationMatrix();
     rot->rotateY(108*deg);
@@ -3182,11 +3183,11 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     //mDOM Harness
 		// all called pDOM but we are still in mDOM
         G4double PDOM_Harness_inner[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //Inner radii of the harness
-		//G4double GlasOutRad_abitbigger = GlasOutRad + 1*mm;
-		//G4double PDOM_Harness_inner[] = {GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger, GlasOutRad_abitbigger}; //Inner radii of the harness
+		//G4double gGlasOutRad_abitbigger = gGlasOutRad + 1*mm;
+		//G4double PDOM_Harness_inner[] = {gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger, gGlasOutRad_abitbigger}; //Inner radii of the harness
         G4double PDOM_Harness_radii[] = {179 * mm, (196.4 - 8) * mm, (196.4 - 6.35) * mm, 199 * mm, 196.4 * mm, 196.4 * mm, 199 * mm, (196.4 - 6.35) * mm, (196.4 - 8) * mm, 179 * mm}; //Outer radii of the harness
         G4double PDOM_Harness_zplanes[] = {-23 * mm, -22.5 * mm, -22.5 * mm, -10 * mm, -10 * mm, 10 * mm, 10 * mm, 22.5 * mm, 22.5 * mm, 23 * mm};  //Corresponding z values for the radii
-        //PDOM_GlassSphere_solid = new G4Orb("PDOM_GlassSphere solid", GlasOutRad); //Radius of the sphere to be cut from the harness
+        //PDOM_GlassSphere_solid = new G4Orb("PDOM_GlassSphere solid", gGlasOutRad); //Radius of the sphere to be cut from the harness
 
         PDOM_HarnessAux_solid = new G4Polycone("PDOM_HarnessAux solid", 0, 2 * pi, 10, PDOM_Harness_zplanes, PDOM_Harness_inner, PDOM_Harness_radii);   //Creating harness via polycone geometry
         PDOM_Harness_solid = new G4SubtractionSolid("PDOM_Harness solid", PDOM_HarnessAux_solid, Glass_solid);   //Cutting PDOM_GlassSphere_solid from PDOM_HarnessAux_solid
@@ -3376,8 +3377,8 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   
   if (OM_type == "PDOM") {
     
-    G4double PDOM_GelThick = 10*mm;
-    G4double PDOM_PMT_z = 0.5*12*25.4*mm-Tube10_geo_curvature_radius-PDOM_GelThick;
+    G4double PDOM_gGelThick = 10*mm;
+    G4double PDOM_PMT_z = 0.5*12*25.4*mm-Tube10_geo_curvature_radius-PDOM_gGelThick;
     
     PDOM_GlassSphere_solid = new G4Orb("PDOM_GlassSphere solid",0.5*13*25.4*mm);
     PDOM_GelSphere_solid = new G4Orb("PDOM_GelSphere solid",0.5*12*25.4*mm);
@@ -3437,56 +3438,55 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   
   
   if (OM_type == "halfmDOM") {
-    G4double singlePMT_z = CylHigh + GlasInRad - GelPMT - PMToffset;
+    G4double singlePMT_z = gCylHigh + gGlasInRad - GelPMT - PMToffset;
     
     // Glass
-    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", GlasOutRad, GlasOutRad, GlasOutRad, -5*mm, GlasOutRad+5*mm);
-    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", gGlasOutRad, gGlasOutRad, gGlasOutRad, -5*mm, gGlasOutRad+5*mm);
+    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, gGlasOutRad, gCylHigh, 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Glass_solid = new G4UnionSolid("single_glass_body", single_GlassCylinder_solid, single_GlassSphereTop_solid, transformers);
     //for full module
-    //		G4Sphere* single_GlassSphereTop_solid = new G4Sphere("single_GlassSphereTop solid", 0, GlasOutRad, 0, 2*pi, 0, 0.51*pi);
-    //		G4Sphere* single_GlassSphereBottom_solid = new G4Sphere("single_GlassSphereBottom solid", 0, GlasOutRad, 0, 2*pi, 0.49*pi, pi);
-    //		G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    //		G4Sphere* single_GlassSphereTop_solid = new G4Sphere("single_GlassSphereTop solid", 0, gGlasOutRad, 0, 2*pi, 0, 0.51*pi);
+    //		G4Sphere* single_GlassSphereBottom_solid = new G4Sphere("single_GlassSphereBottom solid", 0, gGlasOutRad, 0, 2*pi, 0.49*pi, pi);
+    //		G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, gGlasOutRad, gCylHigh, 0, 2*pi);
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     //		G4UnionSolid* single_temp_union = new G4UnionSolid("single_temp", single_GlassCylinder_solid, single_GlassSphereTop_solid, transformers);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-gCylHigh));
     //		G4UnionSolid* single_Glass_solid = new G4UnionSolid("single_glass_body", single_temp_union, single_GlassSphereBottom_solid, transformers);
     
     //  Gel
-    G4Ellipsoid* single_GelSphereTop_solid = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-    G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GelSphereTop_solid = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+    G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Gel_solid = new G4UnionSolid("single_gel_body", single_GelCylinder_solid, single_GelSphereTop_solid, transformers);
     //for full module
-    //		G4Sphere* single_GelSphereTop_solid = new G4Sphere("single_GelSphereTop solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0, 0.51*pi);
-    //		G4Sphere* single_GelSphereBottom_solid = new G4Sphere("single_GelSphereBottom solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0.49*pi, pi);
-    //		G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    //		G4Sphere* single_GelSphereTop_solid = new G4Sphere("single_GelSphereTop solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0, 0.51*pi);
+    //		G4Sphere* single_GelSphereBottom_solid = new G4Sphere("single_GelSphereBottom solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0.49*pi, pi);
+    //		G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     //		G4UnionSolid* single_temp_union2 = new G4UnionSolid("single_temp2", single_GelCylinder_solid, single_GelSphereTop_solid, transformers);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-gCylHigh));
     //		G4UnionSolid* single_Gel_solid = new G4UnionSolid("single_gel_body", single_temp_union2, single_GelSphereBottom_solid, transformers);
     
     //  PMT TubeHolder from "foam" primitives & cutting "nests" for PMTs later
-    // 		G4Sphere* single_FoamSphereTop_solid = new G4Sphere("single FoamSphereTop solid", 0, GlasOutRad - GlasThick - GelThick, 0, 2*pi, 0, 0.51*pi);
-    // 		G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, GlasOutRad - GlasThick - GelThick, CylHigh , 0, 2*pi);
-    // 		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+    // 		G4Sphere* single_FoamSphereTop_solid = new G4Sphere("single FoamSphereTop solid", 0, gGlasOutRad - gGlasThick - gGelThick, 0, 2*pi, 0, 0.51*pi);
+    // 		G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, gGlasOutRad - gGlasThick - gGelThick, gCylHigh , 0, 2*pi);
+    // 		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
     // 		G4UnionSolid* single_Union_solid = new G4UnionSolid("single Union solid", single_FoamCylinder_solid, single_FoamSphereTop_solid, transformers);
     // 		G4Tubs* single_Cylinder_solid = new G4Tubs("single Cylinder solid", 0, 60*mm, 30*cm , 0, 2*pi);
     // 		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,0));
     // 		G4IntersectionSolid* single_Foam_solid = new G4IntersectionSolid("single Foam solid",single_Union_solid,single_Cylinder_solid,transformers);
-    G4double FoamRad = GlasOutRad - GlasThick - GelThick;
-    G4Ellipsoid* FoamSphereTop_solid = new G4Ellipsoid("FoamSphereTop solid", FoamRad, FoamRad, FoamRad, -5*mm, FoamRad+5*mm);
-    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+    G4Ellipsoid* FoamSphereTop_solid = new G4Ellipsoid("FoamSphereTop solid", gFoamRad, gFoamRad, gFoamRad, -5*mm, gFoamRad+5*mm);
+    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
     G4UnionSolid* single_Foam_solid = new G4UnionSolid("single Foam solid", single_FoamCylinder_solid, FoamSphereTop_solid, transformers);
     //for full module
-    //		G4Sphere* single_FoamSphereTop_solid = new G4Sphere("single FoamSphereTop solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0, 0.51*pi);
-    //		G4Sphere* single_FoamSphereBottom_solid = new G4Sphere("single FoamSphereBottom solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0.49*pi, pi);
-    //		G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+    //		G4Sphere* single_FoamSphereTop_solid = new G4Sphere("single FoamSphereTop solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0, 0.51*pi);
+    //		G4Sphere* single_FoamSphereBottom_solid = new G4Sphere("single FoamSphereBottom solid", 0, gGlasOutRad - gGlasThick, 0, 2*pi, 0.49*pi, pi);
+    //		G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
     //		G4UnionSolid* single_Foam_TempUnion_solid = new G4UnionSolid("single Foam TempUnion solid", single_FoamCylinder_solid, single_FoamSphereTop_solid, transformers);
-    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(CylHigh )));
+    //		transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(gCylHigh )));
     //		G4UnionSolid* single_Foam_solid = new G4UnionSolid("single Foam solid", single_Foam_TempUnion_solid, single_FoamSphereBottom_solid, transformers);
     
     RefConeBasic_solid = new G4Cons("RefConeBasic", 
@@ -3496,7 +3496,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 				    RefCone_IdealInRad + RefCone_SheetThickness*std::sqrt(2.) + 2*RefConeDZ, 
 				    RefConeDZ, 0, 2*pi);
     rot = new G4RotationMatrix();
-    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid, transformers);
     RefConeType1_logical = new G4LogicalVolume(RefConeType1_solid, Mat_Reflector, "RefConeType1 logical");   
     
@@ -3534,12 +3534,12 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   
   
   if (OM_type == "halfmDOM2") {
-    G4double singlePMT_z = CylHigh + GlasInRad - GelPMT - PMToffset;
+    G4double singlePMT_z = gCylHigh + gGlasInRad - GelPMT - PMToffset;
     
     // Glass
-    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", GlasOutRad, GlasOutRad, GlasOutRad, -5*mm, GlasOutRad+5*mm);
-    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", gGlasOutRad, gGlasOutRad, gGlasOutRad, -5*mm, gGlasOutRad+5*mm);
+    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, gGlasOutRad, gCylHigh, 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Glass_solid = new G4UnionSolid("single_glass_body", single_GlassCylinder_solid, single_GlassSphereTop_solid, transformers);
     G4LogicalVolume* single_Glass_logical = new G4LogicalVolume (single_Glass_solid, Mat_Vessel_Glass, "single_Glasscorpus logical");
     
@@ -3550,36 +3550,35 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     
     
     //  Gel
-    G4Ellipsoid* single_Gel_solid1 = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, 120*mm, GlasInRad+5*mm);
-    //G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    //transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_Gel_solid1 = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, 120*mm, gGlasInRad+5*mm);
+    //G4Tubs* single_GelCylinder_solid = new G4Tubs("single_GelCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    //transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     //G4UnionSolid* single_Gel_solid = new G4UnionSolid("single_gel_body", single_GelCylinder_solid, single_GelSphereTop_solid, transformers);
     
     
     
     //  Gel
-    G4Ellipsoid* single_GelSphereTop_solid2 = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-    GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", GlasInRad, GlasInRad, GlasInRad, -(GlasInRad+5*mm), 5*mm);
-    G4Tubs* single_GelCylinder_solid2 = new G4Tubs("single_GelCylinder solid", 0, GlasOutRad - GlasThick-0.01*mm, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GelSphereTop_solid2 = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+    GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", gGlasInRad, gGlasInRad, gGlasInRad, -(gGlasInRad+5*mm), 5*mm);
+    G4Tubs* single_GelCylinder_solid2 = new G4Tubs("single_GelCylinder solid", 0, gGlasOutRad - gGlasThick-0.01*mm, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Gel_solid2 = new G4UnionSolid("single_gel_body", single_GelCylinder_solid2, single_GelSphereTop_solid2, transformers);
     
     // two half-vessels:
-    // transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
+    // transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-gCylHigh));
     //single_Gel_solid2  = new G4UnionSolid("gel body", single_Gel_solid2 , GelSphereBottom_solid, transformers);
     
     
     
     
     
-    G4double FoamRad = GlasOutRad - GlasThick - GelThick;
-    G4Ellipsoid* FoamSphereTop_solid  = new G4Ellipsoid("FoamSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+    G4Ellipsoid* FoamSphereTop_solid  = new G4Ellipsoid("FoamSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
     G4UnionSolid* single_Foam_solid = new G4UnionSolid("single Foam solid", single_FoamCylinder_solid, FoamSphereTop_solid, transformers);
     //----------------two vessels:
-    // G4Ellipsoid* FoamSphereBottom_solid = new G4Ellipsoid("FoamSphereBottom solid", GlasInRad, GlasInRad, GlasInRad, -(GlasInRad+5*mm), 5*mm);		
-    // transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(CylHigh )));
+    // G4Ellipsoid* FoamSphereBottom_solid = new G4Ellipsoid("FoamSphereBottom solid", gGlasInRad, gGlasInRad, gGlasInRad, -(gGlasInRad+5*mm), 5*mm);		
+    // transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-(gCylHigh )));
     // single_Foam_solid = new G4UnionSolid("Foam solid", single_Foam_solid, FoamSphereBottom_solid, transformers);
     //-----------------------------
     
@@ -3591,7 +3590,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 				    RefCone_IdealInRad + RefCone_SheetThickness*std::sqrt(2.) + 2*RefConeDZ, 
 				    RefConeDZ, 0, 2*pi);
     rot = new G4RotationMatrix();
-    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid,transformers);
     
     // ABS CONE------------------------------
@@ -3601,7 +3600,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 						RefCone_IdealInRad + 1.7*RefConeDZ+1*RefCone_SheetThickness*std::sqrt(2.), 
 						RefCone_IdealInRad + 2*RefCone_SheetThickness*std::sqrt(2.) + 1.7*RefConeDZ, 
 						RefConeDZ*2.28, 0, 2*pi);
-    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-GlasInRad+RefConeDZ*2));
+    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-gGlasInRad+RefConeDZ*2));
     G4VSolid* RefConeBasic_solid2 = new G4IntersectionSolid("RefConeType2", RefConeBasic_solid22, single_Gel_solid1, transformers);
     
     
@@ -3615,11 +3614,11 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     
     
     
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh+0.5*mm));
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh+0.5*mm));
     G4SubtractionSolid* single_TubeHolder_solid3 = new G4SubtractionSolid("single TubeHolder3 solid",single_Foam_solid, single_Gel_solid1, transformers);
     
     
-    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     //	G4SubtractionSolid* single_TubeHolder_solid4 = new G4SubtractionSolid("single TubeHolder4 solid",single_TubeHolder_solid3, RefConeBasic_solid2, transformers);
     
     
@@ -3628,13 +3627,13 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     
     //Gel booleans substraction
     
-    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(-CylHigh+GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(-gCylHigh+gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     //	G4SubtractionSolid* single_Gel_solid3 = new G4SubtractionSolid("Gel substraction 1",single_Gel_solid1, RefConeBasic_solid2, transformers);
     
-    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(singlePMT_z-CylHigh)));
+    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(singlePMT_z-gCylHigh)));
     //	G4SubtractionSolid* single_Gel_solid4 = new G4SubtractionSolid("Gel substraction 2",single_Gel_solid1, PMT80_tube_solid, transformers);
     
-    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(singlePMT_z-CylHigh)));
+    //	transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(singlePMT_z-gCylHigh)));
     //	G4SubtractionSolid* single_Gel_solid = new G4SubtractionSolid("Gel substraction 3",single_Gel_solid4, RefConeNest_solid, transformers);
     
     
@@ -3650,7 +3649,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     // 		PMT_physical[0] = new G4PVPlacement (0, G4ThreeVector(0,0,singlePMT_z), PMT_12199_tube_logical, "PMT_0_physical", single_Gel_logical, false, 0);
     PMT_physical[0] = new G4PVPlacement (0, G4ThreeVector(0,0,singlePMT_z), PMT_12199_tube_logical, "PMT_0_physical", single_Gel_logical, true, 0);
     //RefCone_physical[0] = new G4PVPlacement (0, G4ThreeVector(0,0,singlePMT_z + RefConeDZ), RefConeType1_logical, "RefCone_0_physical", single_Gel_logical, true, 0);
-    G4VPhysicalVolume* RefCone2_physical = new G4PVPlacement (0, G4ThreeVector(0,0,GlasInRad-RefConeDZ*2+CylHigh), RefConeType2_logical, "RefCone_2_physical", single_Gel_logical, true, 0);
+    G4VPhysicalVolume* RefCone2_physical = new G4PVPlacement (0, G4ThreeVector(0,0,gGlasInRad-RefConeDZ*2+gCylHigh), RefConeType2_logical, "RefCone_2_physical", single_Gel_logical, true, 0);
     
     TubeHolder_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), single_TubeHolder_logical, "TubeHolder physical", single_Gel_logical, true, 0);
     Gel_physical = new G4PVPlacement (0, G4ThreeVector(0,0,0), single_Gel_logical, "Gelcorpus physical", single_Glass_logical, true, 0);
@@ -3670,30 +3669,29 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   
   
   if (OM_type == "PMTwithSample") {
-    G4double singlePMT_z = CylHigh + GlasInRad - GelPMT - PMToffset;
+    G4double singlePMT_z = gCylHigh + gGlasInRad - GelPMT - PMToffset;
 
-    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", GlasOutRad, GlasOutRad, GlasOutRad, -5*mm, GlasOutRad+5*mm);
-    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, GlasOutRad, CylHigh, 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GlassSphereTop_solid = new G4Ellipsoid("single_GlassSphereTop solid", gGlasOutRad, gGlasOutRad, gGlasOutRad, -5*mm, gGlasOutRad+5*mm);
+    G4Tubs* single_GlassCylinder_solid = new G4Tubs("single_GlassCylinder solid", 0, gGlasOutRad, gCylHigh, 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Glass_solid = new G4UnionSolid("single_glass_body", single_GlassCylinder_solid, single_GlassSphereTop_solid, transformers);
     G4LogicalVolume* single_Glass_logical = new G4LogicalVolume (single_Glass_solid, Mat_LabAir, "single_Glasscorpus logical");
 
-    G4Ellipsoid* single_Gel_solid1 = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, 120*mm, GlasInRad+5*mm);
+    G4Ellipsoid* single_Gel_solid1 = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, 120*mm, gGlasInRad+5*mm);
 
-    G4Ellipsoid* single_GelSphereTop_solid2 = new G4Ellipsoid("GelSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-    GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", GlasInRad, GlasInRad, GlasInRad, -(GlasInRad+5*mm), 5*mm);
-    G4Tubs* single_GelCylinder_solid2 = new G4Tubs("single_GelCylinder solid", 0, GlasOutRad - GlasThick-0.01*mm, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh ));
+    G4Ellipsoid* single_GelSphereTop_solid2 = new G4Ellipsoid("GelSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+    GelSphereBottom_solid = new G4Ellipsoid("GelSphereBottom solid", gGlasInRad, gGlasInRad, gGlasInRad, -(gGlasInRad+5*mm), 5*mm);
+    G4Tubs* single_GelCylinder_solid2 = new G4Tubs("single_GelCylinder solid", 0, gGlasOutRad - gGlasThick-0.01*mm, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh ));
     G4UnionSolid* single_Gel_solid2 = new G4UnionSolid("single_gel_body", single_GelCylinder_solid2, single_GelSphereTop_solid2, transformers);
 
     
     
     
     
-    G4double FoamRad = GlasOutRad - GlasThick - GelThick;
-    G4Ellipsoid* FoamSphereTop_solid  = new G4Ellipsoid("FoamSphereTop solid", GlasInRad, GlasInRad, GlasInRad, -5*mm, GlasInRad+5*mm);
-    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, GlasOutRad - GlasThick, CylHigh , 0, 2*pi);
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(CylHigh )));
+    G4Ellipsoid* FoamSphereTop_solid  = new G4Ellipsoid("FoamSphereTop solid", gGlasInRad, gGlasInRad, gGlasInRad, -5*mm, gGlasInRad+5*mm);
+    G4Tubs* single_FoamCylinder_solid = new G4Tubs("single FoamCylinder solid", 0, gGlasOutRad - gGlasThick, gCylHigh , 0, 2*pi);
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,(gCylHigh )));
     G4UnionSolid* single_Foam_solid = new G4UnionSolid("single Foam solid", single_FoamCylinder_solid, FoamSphereTop_solid, transformers);
 
     RefConeBasic_solid = new G4Cons("RefConeBasic", 
@@ -3703,7 +3701,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 				    RefCone_IdealInRad + RefCone_SheetThickness*std::sqrt(2.) + 2*RefConeDZ, 
 				    RefConeDZ, 0, 2*pi);
     rot = new G4RotationMatrix();
-    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(GlasInRad-GelPMT-PMToffset+RefConeDZ)));
+    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-(gGlasInRad-GelPMT-PMToffset+RefConeDZ)));
     RefConeType1_solid = new G4IntersectionSolid("RefConeType1", RefConeBasic_solid, FoamSphereTop_solid,transformers);
 
     G4VSolid* RefConeBasic_solid22 = new G4Cons("RefConeBasic2", 
@@ -3712,13 +3710,13 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 						RefCone_IdealInRad + 1.7*RefConeDZ+1*RefCone_SheetThickness*std::sqrt(2.), 
 						RefCone_IdealInRad + 2*RefCone_SheetThickness*std::sqrt(2.) + 1.7*RefConeDZ, 
 						RefConeDZ*2.28, 0, 2*pi);
-    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-GlasInRad+RefConeDZ*2));
+    transformers = G4Transform3D(*rot, G4ThreeVector(0,0,-gGlasInRad+RefConeDZ*2));
     G4VSolid* RefConeBasic_solid2 = new G4IntersectionSolid("RefConeType2", RefConeBasic_solid22, single_Gel_solid1, transformers);
 
     
     
     
-    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,CylHigh+0.5*mm));
+    transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,gCylHigh+0.5*mm));
     G4SubtractionSolid* single_TubeHolder_solid3 = new G4SubtractionSolid("single TubeHolder3 solid",single_Foam_solid, single_Gel_solid1, transformers);
     
     
@@ -3760,7 +3758,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     G4LogicalVolume* myWorldLog = new G4LogicalVolume (myWorld, Mat_LabAir, "myairworld");
     G4PVPlacement* myworldphy = new G4PVPlacement (0, G4ThreeVector(0,0,0), myWorldLog, "myworld", World_logical, true, 0);
     
-    //G4VPhysicalVolume* RefCone2_physical = new G4PVPlacement (0, G4ThreeVector(0,0,RefConeDZ+0*CylHigh), RefConeType2_logical, "RefCone_2_physical", myWorldLog, true, 0);
+    //G4VPhysicalVolume* RefCone2_physical = new G4PVPlacement (0, G4ThreeVector(0,0,RefConeDZ+0*gCylHigh), RefConeType2_logical, "RefCone_2_physical", myWorldLog, true, 0);
     PMT_physical[0] = new G4PVPlacement (0, G4ThreeVector(0,0,0), PMT_12199_tube_logical, "PMT_0_physical", myWorldLog, true, 0);
     
     //Glass_physical = new G4PVPlacement (0, G4ThreeVector(0,0,distToPMT+8*mm-zdist+PMTheight), mySampleLog, "Glass_phys", myWorldLog, true, 0);

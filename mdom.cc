@@ -57,8 +57,17 @@ G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
 G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
 //G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
 G4double gInnercolumn_b_inv;
-G4double gZshift;
+G4double gZshift; //shift of the LED with respect to the center of its module
 G4int gbulk_ice;
+
+// defining mDOM dimensions: (this is here because it is use to flash the LEDs)
+G4double gGlasOutRad = 176.5*mm;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
+G4double gGlasThick = 13.5*mm;			// maximum glass thickness
+G4double gGlasInRad = gGlasOutRad - gGlasThick;
+G4double gCylHigh = 27.5*mm;			// height of cylindrical part of glass half-vessel
+G4double gGelThick = 4.5*mm;//2*mm;			// distance between inner glass surface and holding structure, filled with
+G4double gFoamRad = gGlasOutRad - gGlasThick - gGelThick;
+
 
 G4double	gscintYield;
 G4double	gscintTimeConst;
@@ -70,6 +79,7 @@ G4bool gropes;
 G4bool gmdomharness;
 G4double	gmdomseparation;
 G4int	gn_mDOMs;
+G4bool gpointingdownLED;
 
 G4int	gsimevents;
 G4int 	gReconstruction;
@@ -320,16 +330,11 @@ void LED_Definition()
     int nbOfLEDs = strlen(gActivateLED);
     double phi, theta, dist, theta_p, cos_phi, sin_phi, cos_theta, sin_theta, cos_theta_p, sin_theta_p;
     double rho, posX, posY, posZ, posXp, posYp, posZp, x, y, z, xp, yp, zp;
-    double offset_phi = -360. / 8 / 2  * deg;
-    G4double GelThick = 2 * mm;
-    G4double GlasOutRad = 0.5 * 356 * mm;
-    G4double GlasThick = 13 * mm;
-    G4double GlasInRad = GlasOutRad - GlasThick;
-    G4double FoamRad = GlasInRad - GelThick;
-    G4double LEDSphereSize = 0 * mm;
-    G4double DistLED = FoamRad + LEDSphereSize + 0.2 * mm;
-    G4double CylHigh = 27.5 * mm;
-    G4double totalDOMsize = 199 * mm;
+    //double offset_phi = -360. / 8 / 2  * deg;
+    //G4double gFoamRad = GlasInRad - gGelThick;
+    G4double LEDSphereSize = 0.2*mm;//0.2 * mm; //necessary to separate a bit the LED from the paint
+    G4double DistLED = gFoamRad + LEDSphereSize;// + 0.2 * mm;
+    //G4double totalDOMsize = 199 * mm;
 
     
     std::stringstream command;
@@ -340,18 +345,38 @@ void LED_Definition()
     {
         (v_LED_Positions.at(i)).resize(2);
     }
+    // We set the LED positons in theta and phi and then we interpolate the position in the holding extructure
+    // Notice that theta = 90 will be at the center of the cylindrical part
     //top LED
-    (v_LED_Positions.at(0)).at(0) = 0. * deg; //-> theta
-    (v_LED_Positions.at(0)).at(1) = 0. * deg; //-> phi
+    // old config -> (v_LED_Positions.at(0)).at(0) = 0. * deg; //-> theta
+    // old config -> (v_LED_Positions.at(0)).at(1) = 0. * deg; //-> phi
+    //new positions, calculated from Hans-Werner values
+    /*
+    values_from_hans = {"0" : [-9.98, -24.96, (154.42 + 155.83)/2.],
+                    "1" : [127.05, 52.63, (77.8+77.29)/2.],
+                    "2" : [-52.63, -127.05, (77.8+77.29)/2.],
+                    "3" : [-127.05, 52.63, (77.8+77.29)/2.],
+                    "4" : [52.63, 127.05, (77.8+77.29)/2.]} #from center of spherical part 
+    */
+    G4double theta_ledontop = 10.101182797397161*deg;
+    G4double theta_ledsinrow = 52.768817116689156*deg;
+    G4double phi_ledontop = (36.75325083987828 + 90.)*deg; //shift 90 from result because of arctan domain
+    
+    // old config -> (v_LED_Positions.at(0)).at(0) = 0*deg; //-> theta
+    // old config -> (v_LED_Positions.at(0)).at(1) = 0*deg;//;0. * deg; //-> phi
+    (v_LED_Positions.at(0)).at(0) = theta_ledontop; //-> theta
+    (v_LED_Positions.at(0)).at(1) = phi_ledontop;//;0. * deg; //-> phi
     //4x on one side
     for (uint i = 1; i < 5; i++) {
-        (v_LED_Positions.at(i)).at(0) = 42.5*deg;
-        (v_LED_Positions.at(i)).at(1) = 90*deg * (i-1);
+        // old config -> (v_LED_Positions.at(i)).at(0) = 42.5*deg;//42.5*deg;
+        // old config -> (v_LED_Positions.at(i)).at(1) = 90*deg * (i-1);
+        (v_LED_Positions.at(i)).at(0) = theta_ledsinrow;
+        (v_LED_Positions.at(i)).at(1) = 90.*deg * (i-1) + 45.*deg;
     }
     //4x other side
     for (uint i = 5; i < 9; i++) {
         (v_LED_Positions.at(i)).at(0) = 180*deg - 42.5*deg;
-        (v_LED_Positions.at(i)).at(1) = 90*deg * (i-1);
+        (v_LED_Positions.at(i)).at(1) = 90.*deg * (i-1) + 45.*deg;
     }
     //bottom one
     (v_LED_Positions.at(9)).at(0) = 180. * deg;
@@ -403,13 +428,13 @@ void LED_Definition()
             cos_theta = cos(theta);
             sin_theta = sin(theta);
             
-            if (theta < atan2(DistLED, CylHigh))
+            if (theta < atan2(DistLED, gCylHigh))
             {
-                dist = -(CylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(CylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel kleiner 90?
+                dist = -(gCylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(gCylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel kleiner 90?
             }
-            else if (theta > pi - atan2(DistLED, CylHigh))
+            else if (theta > pi - atan2(DistLED, gCylHigh))
             {
-                dist = -(-CylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(CylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel gr??er 90?
+                dist = -(-gCylHigh * cos_theta + sqrt(pow(DistLED, 2) - pow(gCylHigh, 2) * pow(sin_theta, 2)));//f?r Winkel gr??er 90?
             }
             else
             {
@@ -448,10 +473,83 @@ void LED_Definition()
                 gZshift = gmdomseparation*(gn_mDOMs/2-gEmitter_mdom);
             }
             posZ = posZ + gZshift;
+            gZshift = gZshift - gCylHigh;
             gLEDpos = G4ThreeVector(posX, posY, posZ);
             
             command.str("");
+            command << "/gps/pos/type Point";
+            UI->ApplyCommand(command.str());
+            
+            command.str("");
+            //command << "/gps/ang/type iso";
+            command << "/gps/ang/type cos";
+            UI->ApplyCommand(command.str());
+            
+            
+            if (gpointingdownLED == true) {
+                
+                command.str("");
+                command << "/gps/pos/rot1 " << 0. << " " << 1. << " " << 0.;
+                UI->ApplyCommand(command.str());
+                
+                command.str("");
+                command << "/gps/ang/rot1 " << 0. << " " << 1. << " " << 0.;
+                UI->ApplyCommand(command.str());
+                
+                command.str("");
+                command << "/gps/pos/rot2 " << -1. << " " << 0. << " " << 0.;
+                UI->ApplyCommand(command.str());
+                
+                command.str("");
+                command << "/gps/ang/rot2 " << -1. << " " << 0. << " " << 0.;
+                UI->ApplyCommand(command.str());
+                
+                
+            } else {
+                //get direction
+                xp = -sin_phi;	// d/dphi of positionVector (original divided by sin_theta, because length one not needed)
+                yp = cos_phi;
+                zp = 0;
+                
+                G4cout << xp <<  " " << yp << " " << zp << G4endl;
+                G4cout << gLEDpos.getX() << " " << gLEDpos.getY() << " " << gLEDpos.getZ() <<G4endl;
+
+                x =  xp           * cos(ya)                - zp           * sin(ya);
+                y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
+                z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
+                
+                command.str("");
+                command << "/gps/pos/rot1 " << x << " " << y << " " << z;
+                UI->ApplyCommand(command.str());
+                
+                command.str("");
+                command << "/gps/ang/rot1 " << x << " " << y << " " << z;
+                UI->ApplyCommand(command.str());
+                
+                xp = -cos_phi * cos_theta_p;	// -d/dtheta of positionVector (divided by sin_theta, because length one not needed)
+                yp = -sin_phi * cos_theta_p;
+                zp = sin_theta_p;
+
+                x =  xp           * cos(ya)                - zp           * sin(ya);
+                y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
+                z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
+                
+                command.str("");
+                command << "/gps/pos/rot2 " << x << " " << y << " " << z;
+                UI->ApplyCommand(command.str());
+                
+                command.str("");
+                command << "/gps/ang/rot2 " << x << " " << y << " " << z;
+                UI->ApplyCommand(command.str());
+            }
+
+            
+            
+            command.str("");
             command << "/gps/pos/centre " << posX << " " << posY << " " << posZ << " mm";
+            G4cout << "LED position from middle top of half sphere====> " << posX/cm << " " << posY/cm << " " << (posZ - gZshift + gFoamRad + LEDSphereSize)/cm << " cm" <<  G4endl;
+            G4cout << "LED position from middle of half sphere====> " << posX/cm << " " << posY/cm << " " << (posZ - gZshift - gCylHigh + LEDSphereSize)/cm << " cm" <<  G4endl;
+            //gFoamRad + LEDSphereSize had an additional 0.2 mm summed to have the LED slightly out
             UI->ApplyCommand(command.str());
             
             command.str("");
@@ -459,7 +557,11 @@ void LED_Definition()
             //command << "/gps/particle geantino";
             UI->ApplyCommand(command.str());
             
-            
+            G4double MaxAngle = 89.; //when too close to 90, give photons that directly hit the structure and do not propagate... photons with theta=90 are anyway weighed very low
+            command.str("");
+            command << "/gps/ang/maxtheta " << MaxAngle << " deg";
+            UI->ApplyCommand(command.str());
+
             command.str("");
             command << "/gps/source/intensity 1";
             UI->ApplyCommand(command.str());
@@ -467,51 +569,14 @@ void LED_Definition()
             command.str("");
             command << "/gps/energy " << (1239.84193 / gwavelen) << " eV";
             UI->ApplyCommand(command.str());
-                    
-            command.str("");
-            command << "/gps/pos/type Point";
-            UI->ApplyCommand(command.str());
             
-            command.str("");
-            command << "/gps/ang/type iso";
-            UI->ApplyCommand(command.str());
-            
-            command.str("");
-            command << "/gps/ang/mintheta 0 deg";
-            UI->ApplyCommand(command.str());
-            
-            G4double gMaxTheta = 89; //when too close to 90, give photons that directly hit the structure and do not propagate... photons with theta=90 are anyway weighed very low
-            command.str("");
-            command << "/gps/ang/maxtheta " << gMaxTheta << " deg";
-            UI->ApplyCommand(command.str());
+
             
             command.str("");
             command << "";
             UI->ApplyCommand(command.str());
 
-            xp = -sin_phi;	// d/dphi of positionVector (original divided by sin_theta, because length one not needed)
-            yp = cos_phi;
-            zp = 0;
 
-            x =  xp           * cos(ya)                - zp           * sin(ya);
-            y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
-            z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
-            
-            command.str("");
-            command << "/gps/ang/rot1 " << x << " " << y << " " << z;
-            UI->ApplyCommand(command.str());
-
-            xp = -cos_phi * cos_theta_p;	// -d/dtheta of positionVector (divided by sin_theta, because length one not needed)
-            yp = -sin_phi * cos_theta_p;
-            zp = sin_theta_p;
-
-            x =  xp           * cos(ya)                - zp           * sin(ya);
-            y = -xp * sin(xa) * sin(ya) + yp * cos(xa) + zp * sin(xa) * cos(ya);
-            z =  xp * cos(xa) * sin(ya) - yp * sin(xa) + zp * cos(xa) * cos(ya);
-            
-            command.str("");
-            command << "/gps/ang/rot2 " << x << " " << y << " " << z;
-            UI->ApplyCommand(command.str());
         }
     }
 }
@@ -645,6 +710,7 @@ int main(int argc,char *argv[])
 	struct arg_int  *pmt		= arg_int0("pP", "pmt,PMT","<n>","\t\tPMT type [12199S, etel, 12199e]"); 
         
         struct arg_str *activate_LED = arg_str0(NULL, "LED", "<e.g. 1001101010>", "\t\tactivating (1 - default) or deactivating (0) the LEDs (0 - 10)");
+        struct arg_lit	*pointingdownLED		= arg_lit0(NULL,"pointingdownLED","\t\t Run the LEDs always pointing down, instead of being perpendicular to the surface (which is the default mode)");
 	struct arg_int  *emitter_mdom		= arg_int0(NULL, "emitter_mdom","<n>","\t\tEmitter mDOM, default 0"); 
 	struct arg_dbl  *innercolumn_radius		= arg_dbl0(NULL, "innercolumn_radius","<n>","\t\tRadius of inner ice column in cm, def. 7.5");
         struct arg_dbl  *innercolumn_pos_x		= arg_dbl0(NULL, "innercolumn_pos_x","<n>","\t\tx pos of the inner column relative to the modules, in cm. Def 0");
@@ -710,6 +776,7 @@ int main(int argc,char *argv[])
                             pmt,
                             
                             activate_LED,
+                            pointingdownLED,
                             emitter_mdom,
                             innercolumn_radius,
                             innercolumn_pos_x,
@@ -881,6 +948,11 @@ int main(int argc,char *argv[])
             gEmitter_mdom = emitter_mdom->ival[0];
         }
         
+        if (pointingdownLED->count > 0) {
+            gpointingdownLED = true;
+        } else {
+            gpointingdownLED = false;
+        }
         gInnercolumnradius = innercolumn_radius->dval[0]*cm;
         gInnercolumn_pos_x = innercolumn_pos_x->dval[0]*cm;
         gInnercolumn_pos_y = innercolumn_pos_y->dval[0]*cm;

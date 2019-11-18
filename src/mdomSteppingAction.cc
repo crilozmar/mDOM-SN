@@ -24,6 +24,7 @@ extern G4int gSNGun;
 extern G4int gneutroncapture;
 extern G4double gZshift;
 extern G4ThreeVector gLEDpos;
+extern G4bool gpointingdownLED;
 
 mdomSteppingAction::mdomSteppingAction()
 { 
@@ -58,7 +59,6 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 	std::vector<G4String> n_module; //module number
 	std::vector<G4String> n; //PMT number
 	extern std::vector<G4String> explode (G4String s, char d);
-	G4ThreeVector deltapos;
 	G4double Ekin;
 	G4double h = 4.136E-15*eV*s;
 	G4double c = 2.99792458E17*nm/s;
@@ -92,13 +92,19 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     //for testing generation
             /*
                     Test_HitStats hitStat;
-                    const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
-                    const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
+                    const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to the center of its half module
+                    const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection(); // - G4ThreeVector(0,0,gZshift);//-gLEDpos-vtx;
+                    G4cout << "*******************************************" << G4endl;
+                    //G4cout << vtx/m << G4endl;
+                    //G4cout << vtxdir/m << G4endl;
                     G4double ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
                     hitStat.reltheta = ang;
+                    hitStat.globtheta = M_PI - vtxdir.getTheta();
                     gAnalysisManager.Test_hitStats.push_back(hitStat);
+                    G4cout << "Material (pre): " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << G4endl;
+                    G4cout << "Material (post): " << aStep->GetPostStepPoint()->GetMaterial()->GetName() << G4endl;
                     aTrack->SetTrackStatus(fStopAndKill);
-                    */
+            */
             if ( aTrack->GetTrackStatus() != fStopAndKill ) {
                 if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
                     Ekin = (aTrack->GetKineticEnergy());
@@ -140,11 +146,18 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     } else {
                         mothercode = 0;
                     }
-                        const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
                         const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
-                        //G4cout << vtx/m << G4endl;
-                        //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
-                        G4double ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
+                        G4double ang;
+                        const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
+
+                        if (gpointingdownLED == true) {
+                            //G4cout << vtx/m << G4endl;
+                            //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
+                            ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
+                        } else {
+                            const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();
+                            ang = M_PI - vtxdir.getTheta();
+                        }
                         //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
                         //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
                         n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
@@ -167,7 +180,7 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 			gAnalysisManager.hitStats.push_back(hitStat);
                     }
                     aTrack->SetTrackStatus(fStopAndKill);		// kills counted photon to prevent scattering and double-counting 
-                    
+                 
                     }
 		}
 	}
@@ -179,44 +192,45 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 			}
 		}
 	}
+	
 }
 
 
 bool mdomSteppingAction::QEcheck(G4double lambda) {
-	if ((gQE) || (gQEweigh)) {
-	if (!QEwavelenght.empty()) {
-	  	probability = 0;
-		if (lambda < QEwavelenght.at(0) || lambda > QEwavelenght.back()) {
-			return false;
-		} else {
-			G4bool boolparameter = false;
-			for (unsigned int u = 0; u <= (QEwavelenght.size()-1); u++) {
-				if (QEwavelenght.at(u) == lambda) {
-					probability = QEprobability.at(u);
-					boolparameter = true;
-				}
-				else if (QEwavelenght.at(u) > lambda) {
-					G4double slope = (QEprobability.at(u)-QEprobability.at(u-1))/(QEwavelenght.at(u)-QEwavelenght.at(u-1));
-					probability = (slope*(lambda-QEwavelenght.at(u-1))+QEprobability.at(u-1));
-					boolparameter = true;
-				}
-				if (boolparameter){
-					G4double rand = G4UniformRand();
-					//G4cout << "wavelenght -> " << lambda/nm << "  points -> " << QEwavelenght.at(u-1)/nm << " & " << QEwavelenght.at(u)/nm << "  points Prob-> " << QEprobability.at(u-1) << " & " << QEprobability.at(u) << "  probabiliy -> " <<probability << "  random "<< rand <<G4endl;  
-					if (rand< probability) {
-						//G4cout << "PARTY" << G4endl;
-						return true;
-					} else {
-						return false;
-					}
-				}
-			}
-		}
-	} else {
-		G4cout << "ERROR!!! -> Check Quantum efficiency function or data" << G4endl;
-		return 0;
-	}
-	}
+    if ((gQE) || (gQEweigh)) {
+        if (!QEwavelenght.empty()) {
+            probability = 0;
+            if (lambda < QEwavelenght.at(0) || lambda > QEwavelenght.back()) {
+                return false;
+            } else {
+                G4bool boolparameter = false;
+                for (unsigned int u = 0; u <= (QEwavelenght.size()-1); u++) {
+                    if (QEwavelenght.at(u) == lambda) {
+                        probability = QEprobability.at(u);
+                        boolparameter = true;
+                    }
+                    else if (QEwavelenght.at(u) > lambda) {
+                        G4double slope = (QEprobability.at(u)-QEprobability.at(u-1))/(QEwavelenght.at(u)-QEwavelenght.at(u-1));
+                        probability = (slope*(lambda-QEwavelenght.at(u-1))+QEprobability.at(u-1));
+                        boolparameter = true;
+                    }
+                    if (boolparameter){
+                        G4double rand = G4UniformRand();
+                        //G4cout << "wavelenght -> " << lambda/nm << "  points -> " << QEwavelenght.at(u-1)/nm << " & " << QEwavelenght.at(u)/nm << "  points Prob-> " << QEprobability.at(u-1) << " & " << QEprobability.at(u) << "  probabiliy -> " <<probability << "  random "<< rand <<G4endl;  
+                        if (rand< probability) {
+                            //G4cout << "PARTY" << G4endl;
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+            }
+        } else {
+            G4cout << "ERROR!!! -> Check Quantum efficiency function or data" << G4endl;
+            return 0;
+        }
+    }
 }
 
 
