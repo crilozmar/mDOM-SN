@@ -828,7 +828,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     G4double ABS_holeice[NUMENTRIES_ICE];
     for (unsigned int u = 0; u < NUMENTRIES_ICE; u++)
     {
-        ABS_holeice[u] = Spice_Absorption(u, 88);
+        ABS_holeice[u] = Spice_Absorption(u, gDepthpos);
     }
     //      Hole ice refraction
     G4double refval_holeice[NUMENTRIES_ICE];

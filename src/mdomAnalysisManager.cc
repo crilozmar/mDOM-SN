@@ -249,7 +249,7 @@ G4String nu;
     datafile << "# World with "<< gn_mDOMs << " mDOMs" << G4endl;
     datafile << "# Total photons -> " << gsimevents << G4endl;
     datafile << "# Activated LEDs: "<< gActivateLED << " in mDOM " << gEmitter_mdom << G4endl;
-    datafile << "# Column radius [cm] " << gInnercolumnradius/cm << " | Column shift x,y [cm] " << gInnercolumn_pos_x/cm << "," << gInnercolumn_pos_y/cm << " | Effective sca. lenght in column [cm] " << gInnercolumn_b_inv;
+    datafile << "# Column radius [cm] " << gInnercolumnradius/cm << " | Column shift x,y [cm] " << gInnercolumn_pos_x/cm << "," << gInnercolumn_pos_y/cm << " | Effective sca. lenght in column [cm] " << gInnercolumn_b_inv/cm;
     if (gQEweigh) {
         datafile << " | Total QE prob ";
     }

@@ -117,6 +117,7 @@ G4int		gHolderColor;
 G4int		gDOM;
 G4int 		gSNGun;
 
+G4String	gcode;
 std::vector<std::tuple<G4int,G4int,G4int> > AcumulateHits;
 
 	std::stringstream command;
@@ -683,6 +684,9 @@ int mdom() {
 #endif
 
 	delete runManager;
+    if (gcode != "None") {
+        G4cout << "Simulation finished : " << gcode << G4endl;
+    }    
 	return 0;
 }
 
@@ -731,6 +735,7 @@ int main(int argc,char *argv[])
 	struct arg_dbl  *cone_ang   = arg_dbl0(NULL, "cone_ang","<n>","\t\t\topening semi-angle of cone; (45 deg)");	
 	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1");	
 	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1");	
+    struct arg_str *code = arg_str0(NULL, "code", "None", "Whatever thing you want printout just before the GoodBye (None for no printing)");
 
 	
 	struct arg_dbl	*scintYield	= arg_dbl0(NULL, "scintYield", "<n>", "\t\tScintillation Yield of the glass (only Vitrovex). Default 57/MeV");
@@ -796,6 +801,7 @@ int main(int argc,char *argv[])
                             cone_ang,
                             mdomharness,
                             ropes,
+                            code,
                             
                             scintYield,
                             scintTimeConst,
@@ -867,6 +873,7 @@ int main(int argc,char *argv[])
 	
 	mdomharness->ival[0] = 0;
 	ropes->ival[0]=0;
+    code->sval[0] = "None"; // core_process for example
 	
 	scintYield->dval[0] = 57.0;
 	scintTimeConst->dval[0] = 300000.0;
@@ -999,6 +1006,8 @@ int main(int argc,char *argv[])
 
 	if (mdomharness->ival[0]==1) gmdomharness = true; else gmdomharness = false;
 	if (ropes->ival[0]==1) gropes = true; else gropes = false;
+    
+    gcode = code->sval[0];
 	
 	if ((Sun_e->count>0) || (Sun_mu->count>0) || (Sun_tau->count>0) ){
 		if ((Sun_e->count>0) && ((Sun_mu->count>0) || (Sun_tau->count>0))) {
