@@ -150,7 +150,7 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                         G4double ang;
                         const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
 
-                        if (gpointingdownLED == true) {
+                        if (gpointingdownLED == false) {
                             //G4cout << vtx/m << G4endl;
                             //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
                             ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
