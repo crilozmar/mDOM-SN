@@ -25,6 +25,7 @@ extern G4int gneutroncapture;
 extern G4double gZshift;
 extern G4ThreeVector gLEDpos;
 extern G4bool gpointingdownLED;
+extern G4String gHittype;
 
 mdomSteppingAction::mdomSteppingAction()
 { 
@@ -94,16 +95,17 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     Test_HitStats hitStat;
                     const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to the center of its half module
                     const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection(); // - G4ThreeVector(0,0,gZshift);//-gLEDpos-vtx;
-                    G4cout << "*******************************************" << G4endl;
+                    //G4cout << "*******************************************" << G4endl;
                     //G4cout << vtx/m << G4endl;
                     //G4cout << vtxdir/m << G4endl;
                     G4double ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
                     hitStat.reltheta = ang;
                     hitStat.globtheta = M_PI - vtxdir.getTheta();
                     gAnalysisManager.Test_hitStats.push_back(hitStat);
-                    G4cout << "Material (pre): " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << G4endl;
-                    G4cout << "Material (post): " << aStep->GetPostStepPoint()->GetMaterial()->GetName() << G4endl;
-                    aTrack->SetTrackStatus(fStopAndKill);
+                    //G4cout << "Material (pre): " << aStep->GetPreStepPoint()->GetMaterial()->GetName() << G4endl;
+                    //G4cout << "Material (post): " << aStep->GetPostStepPoint()->GetMaterial()->GetName() << G4endl;
+                    //G4cout << ang << " " <<  M_PI - vtxdir.getTheta() << G4endl;
+                    //aTrack->SetTrackStatus(fStopAndKill);
             */
             if ( aTrack->GetTrackStatus() != fStopAndKill ) {
                 if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
@@ -111,74 +113,81 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                     lambda = h*c/Ekin;
                     if ( (!gQE) || ( (QEcheck(lambda)) && (gQE)) || (gQEweigh)) {
                         HitStat hitStat;
-                    G4int mothercode;
-                    G4int trackID = aTrack->GetTrackID();
-                    bool debugparameter = false;
-                    if ((gSNGun == 2) && (gneutroncapture > 0)) { 
-                        for (int i=0; i<(G4int)gAnalysisManager.AllFamilyTracks.size(); i++ ) {
-                            if ((G4int)gAnalysisManager.AllFamilyTracks.at(i).photonstracks.size() == 0)
-                                {continue;} 
-                            if ((std::find(std::begin(gAnalysisManager.AllFamilyTracks.at(i).photonstracks),      std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks), trackID) != std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks)) || (gAnalysisManager.AllFamilyTracks.at(i).photonstracks.back() == trackID)) {
-                                if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "e+") {
-                                    mothercode = 1;
-                                } else if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "gamma") {
-                                    G4double energy2 = 2*MeV;
-                                    G4double energy3 = 8*MeV;
-                                    if (gAnalysisManager.AllFamilyTracks.at(i).energy == energy2) {
-                                        mothercode = 2;
-                                    } else if (gAnalysisManager.AllFamilyTracks.at(i).energy == energy3) {
-                                        mothercode = 3;
+                        G4int mothercode;
+                        G4int trackID = aTrack->GetTrackID();
+                        bool debugparameter = false;
+                        if ((gSNGun == 2) && (gneutroncapture > 0)) { 
+                            for (int i=0; i<(G4int)gAnalysisManager.AllFamilyTracks.size(); i++ ) {
+                                if ((G4int)gAnalysisManager.AllFamilyTracks.at(i).photonstracks.size() == 0)
+                                    {continue;} 
+                                if ((std::find(std::begin(gAnalysisManager.AllFamilyTracks.at(i).photonstracks),      std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks), trackID) != std::end(gAnalysisManager.AllFamilyTracks.at(i).photonstracks)) || (gAnalysisManager.AllFamilyTracks.at(i).photonstracks.back() == trackID)) {
+                                    if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "e+") {
+                                        mothercode = 1;
+                                    } else if (gAnalysisManager.AllFamilyTracks.at(i).motherparticle == "gamma") {
+                                        G4double energy2 = 2*MeV;
+                                        G4double energy3 = 8*MeV;
+                                        if (gAnalysisManager.AllFamilyTracks.at(i).energy == energy2) {
+                                            mothercode = 2;
+                                        } else if (gAnalysisManager.AllFamilyTracks.at(i).energy == energy3) {
+                                            mothercode = 3;
+                                        } else {
+                                            G4cout << "ERROR!!! Not energy match for gamma mother!!" << G4endl;
+                                            G4cout  << gAnalysisManager.AllFamilyTracks.at(i).energy/MeV << G4endl;
+                                        }
                                     } else {
-                                        G4cout << "ERROR!!! Not energy match for gamma mother!!" << G4endl;
-                                        G4cout  << gAnalysisManager.AllFamilyTracks.at(i).energy/MeV << G4endl;
+                                        G4cout << "ERROR!!! Wrong mother particle type!!" << G4endl;
+                                        G4cout << gAnalysisManager.AllFamilyTracks.at(i).motherparticle << G4endl;
                                     }
-                                } else {
-                                    G4cout << "ERROR!!! Wrong mother particle type!!" << G4endl;
-                                    G4cout << gAnalysisManager.AllFamilyTracks.at(i).motherparticle << G4endl;
+                                    debugparameter = true;
+                                    break;
                                 }
-                                debugparameter = true;
-                                break;
+                            }
+                            if (debugparameter != true) {
+                                G4cout << "ERROR!!! I could not found the mothercode for this event! " << G4endl;
+                            }
+                        } else {
+                            mothercode = 0;
+                        }
+                            const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
+                            G4double ang;
+                            const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
+
+                            if (gpointingdownLED == false) {
+                                //G4cout << vtx/m << G4endl;
+                                //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
+                                ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
+                            } else {
+                                const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();
+                                ang = M_PI - vtxdir.getTheta();
+                            }
+                            //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
+                            //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
+                            n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
+                            //G4cout <<"DEBUG: " << n_module.at(2) << G4endl;
+                            n = explode(aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName(),'_');
+                            if (gHittype == "individual") {
+                                hitStat.moduleNr = atoi(n_module.at(2));
+                                hitStat.pmtNr = atoi(n.at(1));
+                                hitStat.mothercode = mothercode;
+
+                                hitStat.position = aTrack->GetPosition();
+                                hitStat.wavelen = lambda;
+                                hitStat.hit_time = aTrack->GetGlobalTime();
+                                hitStat.reltheta = ang;
+                                if ((gQE) || (gQEweigh)) {
+                                    QEcheck(lambda);
+                                    hitStat.QEprob = probability;
+                                } else { 
+                                    hitStat.QEprob = 1;
+                                }
+                                gAnalysisManager.hitStats.push_back(hitStat);
+                            } else if (gHittype == "collective") {
+                                gAnalysisManager.collectiveStat.pmtHit.push_back(atoi(n.at(1)));
+                                gAnalysisManager.collectiveStat.moduleHit.push_back(atoi(n_module.at(2)));
+                            } else {
+                                G4cout << "Fatal ERROR : gHittype must be individual or collective" << G4endl;
                             }
                         }
-                         if (debugparameter != true) {
-                             G4cout << "ERROR!!! I could not found the mothercode for this event! " << G4endl;
-                         }
-                    } else {
-                        mothercode = 0;
-                    }
-                        const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();//-gLEDpos-vtx;
-                        G4double ang;
-                        const G4ThreeVector& vtx =  aTrack->GetVertexPosition() - G4ThreeVector(0,0,gZshift); //theta angle of LED with respect to this module
-
-                        if (gpointingdownLED == false) {
-                            //G4cout << vtx/m << G4endl;
-                            //G4cout << "vertex momemtum direction " << vtxdir << G4endl;
-                            ang = vtxdir.angle(vtx);  // get angle w.r.t. another vector
-                        } else {
-                            const G4ThreeVector& vtxdir = aTrack->GetVertexMomentumDirection();
-                            ang = M_PI - vtxdir.getTheta();
-                        }
-                        //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName() << G4endl;
-                        //G4cout << "DEBUG: " << aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName() << G4endl;
-                        n_module = explode(aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume(2)->GetName(),'_');
-                        //G4cout <<"DEBUG: " << n_module.at(2) << G4endl;
-                        n = explode(aStep->GetPreStepPoint()->GetPhysicalVolume()->GetName(),'_');
-                        hitStat.moduleNr = atoi(n_module.at(2));
-                        hitStat.pmtNr = atoi(n.at(1));
-                        hitStat.mothercode = mothercode;
-
-                        hitStat.position = aTrack->GetPosition();
-                        hitStat.wavelen = lambda;
-                        hitStat.hit_time = aTrack->GetGlobalTime();
-                        hitStat.reltheta = ang;
-                        if ((gQE) || (gQEweigh)) {
-                            QEcheck(lambda);
-                            hitStat.QEprob = probability;
-                        } else { 
-                            hitStat.QEprob = 1;
-			}
-			gAnalysisManager.hitStats.push_back(hitStat);
-                    }
                     aTrack->SetTrackStatus(fStopAndKill);		// kills counted photon to prevent scattering and double-counting 
                  
                     }

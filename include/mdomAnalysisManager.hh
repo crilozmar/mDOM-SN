@@ -35,6 +35,11 @@ struct EvtStat {
   std::vector<std::tuple<G4int,G4int,G4int> > hitsPMTs;// Module Nr | PMT number | Hits in this PMT
 };
 
+struct CollectiveStat {
+    std::vector<G4int> pmtHit; //pmt that detected this photon
+    std::vector<G4int> moduleHit; //same for module
+};
+
 struct FamilyTrack {
     FamilyTrack() {};
     ~FamilyTrack() {};
@@ -71,42 +76,44 @@ class MdomAnalysisManager
         void ClasifyTracks_New(G4String particle, G4double Energy, G4int firstID);
         void ClasifyTracks_AddTrack(G4String particle, G4int trackID, G4int parentID);
         void testwritter(std::fstream& thisfile);
+        void WriteAccept();
 
 
-		G4double nuTime;
-		G4double nuMeanEnergy;
-		G4double nuEnergy;
-		G4double cosTheta;
-		G4double weigh;
-		G4double primaryEnergy;
-		// event quantities
-		G4bool foundPhoton;
-		G4double primaryX;
-		G4double primaryY;
-		G4double primaryZ;
-		G4double primaryR;
-		G4double primaryDirX;
-		G4double primaryDirY;
-		G4double primaryDirZ;
-		G4double photonTheta;
-		G4double photonPhi;
-		G4double photonR;
-		std::vector<HitStat> hitStats;
-                std::vector<Test_HitStats> Test_hitStats;
+        G4double nuTime;
+        G4double nuMeanEnergy;
+        G4double nuEnergy;
+        G4double cosTheta;
+        G4double weigh;
+        G4double primaryEnergy;
+        // event quantities
+        G4bool foundPhoton;
+        G4double primaryX;
+        G4double primaryY;
+        G4double primaryZ;
+        G4double primaryR;
+        G4double primaryDirX;
+        G4double primaryDirY;
+        G4double primaryDirZ;
+        G4double photonTheta;
+        G4double photonPhi;
+        G4double photonR;
+        std::vector<HitStat> hitStats;
+        std::vector<Test_HitStats> Test_hitStats;
         std::vector<FamilyTrack> AllFamilyTracks;
-		G4double TotHits[24];
-		// run quantities
-		G4String outputFilename;
-		std::fstream datafile;
+        G4double TotHits[24];
+        // run quantities
+        G4String outputFilename;
+        std::fstream datafile;
         std::fstream maininfofile;
         std::fstream datafile_gammas2MeV;
         std::fstream datafile_gammas8MeV;
-		G4double realdistance;
+	G4double realdistance;
         
         EvtStat evtStat0; //GPS
         EvtStat evtStat1; //SNgun2, positron
         EvtStat evtStat2; //SNgun2, gamma 2 MeV
         EvtStat evtStat3; //SNgun2, gamma 8 MeV
+        CollectiveStat collectiveStat;
 	private:
 	 //there is no privacy here
 };

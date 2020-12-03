@@ -15,6 +15,8 @@
 
 extern MdomAnalysisManager gAnalysisManager;
 extern G4int gSNGun;
+extern G4String gHittype;
+
 
 mdomEventAction::mdomEventAction()
 {}
@@ -26,7 +28,9 @@ void mdomEventAction::BeginOfEventAction(const G4Event* evt)
 {
 //	Reset analysis manager
 
-	gAnalysisManager.ResetEvent();
+        if (gHittype == "individual") {
+            gAnalysisManager.ResetEvent();
+        }
 }
 
 void mdomEventAction::EndOfEventAction(const G4Event* evt)
@@ -53,6 +57,8 @@ void mdomEventAction::EndOfEventAction(const G4Event* evt)
 	gAnalysisManager.primaryDirX = Pxdir;
 	gAnalysisManager.primaryDirY = Pydir;
 	gAnalysisManager.primaryDirZ = Pzdir;
-	
-	gAnalysisManager.AnalyzeEvent();
+        
+	if (gHittype == "individual") {
+            gAnalysisManager.AnalyzeEvent();
+        }
 }

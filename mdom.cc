@@ -57,6 +57,7 @@ G4double gInnercolumn_pos_x;// hicetube x pos relative to dom radius
 G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
 //G4double gInnercolumn_av_costheta; //Our standard ice has 0.9
 G4double gInnercolumn_b_inv;
+G4String glightprofile_file;
 G4double gZshift; //shift of the LED with respect to the center of its module
 G4int gbulk_ice;
 
@@ -120,7 +121,7 @@ G4int 		gSNGun;
 G4String	gcode;
 std::vector<std::tuple<G4int,G4int,G4int> > AcumulateHits;
 
-	std::stringstream command;
+std::stringstream command;
 
 
 // G4String	greffilename;
@@ -193,6 +194,35 @@ std::vector<double> readColumnDouble (G4String fn, int col) {
 
 	return values;//values enth??lt den c. Wert aus fn (aus jeder Spalte,welche  nach 255 zeichen oder durch \n beendet wird?)
 }
+/*
+int myreadfiles(G4String filename) { 
+  std::ifstream infile;   
+  int num = 0; // num must start at 0
+  infile.open(filename);// file containing numbers in 2 columns
+  std::vector<G4double> column1;
+  std::vector<G4double> column2;
+     if(infile.fail()) // checks to see if file opended 
+    { 
+       G4cout << "error reading file :" << filename << G4endl; 
+      return 1; // no point continuing if the file didn't open...
+    } 
+       while(!infile.eof()) // reads file to end of *file*, not line
+      { 
+         infile >> column1[num]; // read first column number
+         infile >> column2[num]; // read second column number
+
+         ++num; // go to the next number
+
+         // you can also do it on the same line like this:
+         // infile >> exam1[num] >> exam2[num] >> exam3[num]; ++num;
+      } 
+    for (unsigned int u = 0; u <column1.size(); u++) {
+        G4cout << column1.at(u) << G4endl;
+    }
+  infile.close(); 
+
+  return 0; // everything went right.
+} */
 
 void PointSource(double XGun, double YGun, double ZGun, double tGun, double fGun) {
   
@@ -338,7 +368,6 @@ void LED_Definition()
     //G4double totalDOMsize = 199 * mm;
 
     
-    std::stringstream command;
     
     std::vector< std::vector<double> > v_LED_Positions;
     v_LED_Positions.resize(nbOfLEDs);
@@ -481,12 +510,35 @@ void LED_Definition()
             command << "/gps/pos/type Point";
             UI->ApplyCommand(command.str());
             
-            command.str("");
-            //command << "/gps/ang/type iso";
-            command << "/gps/ang/type cos";
-            UI->ApplyCommand(command.str());
-            
-            
+            if (gHittype == "collective") { //This means a direct light profile simulation will be done
+                command.str("");
+                command << "/gps/ang/type user"; //biast = theta
+                UI->ApplyCommand(command.str());
+                command.str("");
+                command << "/gps/hist/type theta"; //biast = theta
+                UI->ApplyCommand(command.str());
+
+                std::vector<double> led_profile_x;
+                std::vector<double> led_profile_y;
+                led_profile_x = readColumnDouble(glightprofile_file, 1);
+                led_profile_y = readColumnDouble(glightprofile_file, 2);
+                for (unsigned int u = 0; u <led_profile_x.size(); u++) {
+                    command.str("");
+                    //G4cout << led_profile_x.at(u) << " " << led_profile_y.at(u) << G4endl;
+                    command << "/gps/hist/point " << led_profile_x.at(u) << " " << led_profile_y.at(u); //biast = theta
+                    UI->ApplyCommand(command.str());
+                }
+                command.str("");
+                command << "/gps/ang/surfnorm" ;
+                UI->ApplyCommand(command.str());
+                
+            } else {
+                
+                command.str("");
+                //command << "/gps/ang/type iso";
+                command << "/gps/ang/type cos";
+                UI->ApplyCommand(command.str());
+            }
             if (gpointingdownLED == true) {
                 
                 command.str("");
@@ -542,8 +594,12 @@ void LED_Definition()
                 command.str("");
                 command << "/gps/ang/rot2 " << x << " " << y << " " << z;
                 UI->ApplyCommand(command.str());
+                
+                G4double MaxAngle = 89.; //when too close to 90, give photons that directly hit the structure and do not propagate... photons with theta=90 are anyway weighed very low
+                command.str("");
+                command << "/gps/ang/maxtheta " << MaxAngle << " deg";
+                UI->ApplyCommand(command.str());
             }
-
             
             
             command.str("");
@@ -558,14 +614,10 @@ void LED_Definition()
             //command << "/gps/particle geantino";
             UI->ApplyCommand(command.str());
             
-            G4double MaxAngle = 89.; //when too close to 90, give photons that directly hit the structure and do not propagate... photons with theta=90 are anyway weighed very low
-            command.str("");
-            command << "/gps/ang/maxtheta " << MaxAngle << " deg";
-            UI->ApplyCommand(command.str());
 
-            command.str("");
-            command << "/gps/source/intensity 1";
-            UI->ApplyCommand(command.str());
+            //command.str("");
+            //command << "/gps/source/intensity 1";
+            //UI->ApplyCommand(command.str());
             
             command.str("");
             command << "/gps/energy " << (1239.84193 / gwavelen) << " eV";
@@ -721,12 +773,14 @@ int main(int argc,char *argv[])
         struct arg_dbl  *innercolumn_pos_y		= arg_dbl0(NULL, "innercolumn_pos_y","<n>","\t\ty pos of the inner column relative to the modules, in cm. Def 0");
 	//struct arg_dbl  *innercolumn_av_costheta		= arg_dbl0(NULL, "innercolumn_av_costheta","<n>","\t\tAv costheta for mie scattering in inner column"); 
 	struct arg_dbl  *innercolumn_b_inv		= arg_dbl0(NULL, "innercolumn_b_inv","<n>","\t\tEffective scattering lenght for the inner column in cm. Def 100"); 
-        struct arg_int  *bulk_ice		= arg_int0(NULL, "bulk_ice","<n>","\t\tIceProperties in bulk ice (1) or not (0). If 0, --depthpos does nothing. Default should always be 1"); 
+        struct arg_str *lightprofile = arg_str0(NULL,"lightprofile","0 for direct simulation", "\t\tif != 0, it will directly simulates the chosen light experimental profile (from 4 to 11). Output will now be written after the whole run. [Def. 0]");
+
         
 	struct arg_dbl  *mdomseparation		= arg_dbl0(NULL, "msep,mdomseparation","<n>","\t\t\tSeparation between mDOMs (center) in case that there is more than one in meters");
 	struct arg_int  *n_mDOMs		= arg_int0(NULL, "nmdoms,n_mdoms","<n>","\t\tNumber of mDOMs in the simulation (0 = 1)"); 
 
 
+        struct arg_int  *bulk_ice		= arg_int0(NULL, "bulk_ice","<n>","\t\tIceProperties in bulk ice (1) or not (0). If 0, --depthpos does nothing. Default should always be 1"); 
 	struct arg_int  *glass		= arg_int0("uU", "glass","<n>","\t\t\tglass type [VITROVEX, Chiba, Kopp, myVitroVex, myChiba, WOMQuartz, fusedSilica]");
 	struct arg_int	*gel 		= arg_int0("jJ", "gel", "<n>", "\t\t\tgel type [WACKER, Chiba, IceCube, Wacker_company]");
 	struct arg_int	*conemat 	= arg_int0("kK", "conemat", "<n>", "\t\t\tcone material [V95, v98, aluminium, total98]");
@@ -734,8 +788,8 @@ int main(int argc,char *argv[])
 	struct arg_int	*dom 		= arg_int0("mM", "om, dom", "<n>", "\t\t\tmodule type [MDOM, PDOM]");
 	struct arg_dbl  *cone_ang   = arg_dbl0(NULL, "cone_ang","<n>","\t\t\topening semi-angle of cone; (45 deg)");	
 	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1");	
-	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1");	
-    struct arg_str *code = arg_str0(NULL, "code", "None", "Whatever thing you want printout just before the GoodBye (None for no printing)");
+	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1");
+        struct arg_str *code = arg_str0(NULL, "code", "None", "Whatever thing you want printout just before the GoodBye (None for no printing)");
 
 	
 	struct arg_dbl	*scintYield	= arg_dbl0(NULL, "scintYield", "<n>", "\t\tScintillation Yield of the glass (only Vitrovex). Default 57/MeV");
@@ -745,7 +799,6 @@ int main(int argc,char *argv[])
 	
 	struct arg_int  *environment= arg_int0("eE", "environment","<n>","\t\tmedium in which the setup is emmersed [AIR, ice, spice]");
 	struct arg_file *outputfile	= arg_file0("oO","output","<file.txt>","\t\tfilename for hits data");
-	struct arg_int  *hittype	= arg_int0("hH", "hits","<n>","\t\thit collection [individual, COLLECTIVE]");
 	struct arg_lit	*interactive= arg_lit0("iI","interact","\t\topens user interface after run");
 	struct arg_lit	*visual		= arg_lit0("vV","visual","\t\tshows visualization of module after run (also calls interactive)");
 	struct arg_lit	*nohead		= arg_lit0("qQ","nh, nohead","\t\tno header in outputfile");
@@ -788,11 +841,12 @@ int main(int argc,char *argv[])
                             innercolumn_pos_y,
                             //innercolumn_av_costheta,
                             innercolumn_b_inv,
-                            bulk_ice,
+                            lightprofile,
                             
                             mdomseparation,
                             n_mDOMs,
                             
+                            bulk_ice,
                             glass,
                             gel,
                             conemat,
@@ -810,7 +864,6 @@ int main(int argc,char *argv[])
                             
                             environment,
                             outputfile,
-                            hittype,
                             interactive,
                             visual,
                             nohead,
@@ -859,7 +912,8 @@ int main(int argc,char *argv[])
 	//innercolumn_av_costheta->dval[0] = 0.95; //
 	innercolumn_b_inv->dval[0] = 100; //cm
 	bulk_ice->ival[0] = 1; //by default, scattering and absorption in bulk ice
-	
+	lightprofile->sval[0] = "0"; // def. 0, which means no direct simulation
+        
 	mdomseparation-> dval[0] = 2.7; //m
 	n_mDOMs->ival[0] = 1;
 	
@@ -881,7 +935,6 @@ int main(int argc,char *argv[])
 	Temperature->dval[0] = -35;
 	
 	//outputfile->filename[0] = "../output/mdom_testoutput_scan_angular.txt";
-	hittype->ival[0] = 1;		// store information on collective hits as default
 	SNmeanEnergy->dval[0] = 0.0; //<0.1 means do not take this parameter into account
 	alpha->dval[0] = 3.0; //default alpha when using SNmeanEnergy
 	// My stuff
@@ -899,6 +952,8 @@ int main(int argc,char *argv[])
 	/* Parse the command line as defined by argtable[] */
     nerrors = arg_parse(argc,argv,argtable);
 
+    G4String lightprofile_str = lightprofile->sval[0];
+    
     /* special case: '--help' takes precedence over error reporting */
     if (help->count > 0)
 	{
@@ -1071,24 +1126,31 @@ int main(int argc,char *argv[])
 		gQE = false;
 		gQEweigh = false;
 	} else {
-		G4cout << "FATAL ERROR - INPUT PARAMETER: can not choose QE killing event (--QE) and just weighing without killing (--wQE) at the same time" << G4endl;
+		G4cout << "FATAL ERROR - INPUT PARAMETER : can not choose QE killing event (--QE) and just weighing without killing (--wQE) at the same time" << G4endl;
 		goto hell;
 	}
+	
 
 	// Check if volume is big enough
 	if (((gn_mDOMs % 2 == 0) && ((gmdomseparation*(gn_mDOMs/2-1./2.)) > (gworldsize*m+0.3*m))) || ((gn_mDOMs % 2 != 0) && ((gmdomseparation*(gn_mDOMs/2)) > (gworldsize*m+0.3*m)))) {
-		G4cout << "This world is not big enough for those many mDOMs..." << G4endl;
-		goto hell;
-		}
-			
+            G4cout << "FATAL ERROR - INPUT PARAMETER : This world is not big enough for those many mDOMs..." << G4endl;
+            goto hell;
+        }
 
+
+        if (lightprofile_str == "0") {
+            gHittype = "individual";
+        } else {
+            std::string::size_type sz;   // alias of size_t
+            int lightprofile_int = std::stoi (lightprofile->sval[0],&sz);
+            if ((lightprofile_int != 0) && ((lightprofile_int < 4) || (lightprofile_int > 11))) {
+                G4cout << "FATAL ERROR - INPUT PARAMETER : --lightprofile only from 4 to 11 " << G4endl;
+                goto hell;
+                }
+            gHittype = "collective";
+            glightprofile_file = "../aux/lightspectrum_" + lightprofile_str + ".cfg";
+	}
 	
-	if (hittype->ival[0]==0){
-		gHittype = "individual";
-	}
-	if (hittype->ival[0]==1){
-		gHittype = "collective";
-	}
 	if (interactive->count > 0) gInteractive = true; else gInteractive = false;
 	if (visual->count > 0) {
 		gVisual = true;

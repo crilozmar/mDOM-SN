@@ -17,6 +17,8 @@ extern G4String gfilename;
 extern G4int gsimevents;
 extern G4int gneutroncapture;
 extern G4int gSNGun;
+extern G4String	gHittype;
+
 
 mdomRunAction::mdomRunAction(){}
 mdomRunAction::~mdomRunAction(){}
@@ -89,6 +91,10 @@ void mdomRunAction::EndOfRunAction(const G4Run*)
 	// Write output file after all runs
 	gAnalysisManager.Write();
 	*/
+        if (gHittype == "collective") {
+            gAnalysisManager.WriteAccept();
+            gAnalysisManager.ResetEvent();
+        }
 	// Close output data file
 	gAnalysisManager.datafile.close();
   

@@ -29,6 +29,8 @@ extern G4double gInnercolumn_pos_y;// hicetube y pos relative to dom radius
 extern G4double gInnercolumn_b_inv;
 extern G4int gEmitter_mdom;
 
+extern G4String gHittype;
+
 
 MdomAnalysisManager::MdomAnalysisManager(){
   }
@@ -38,10 +40,10 @@ MdomAnalysisManager::~MdomAnalysisManager(){
 
 void MdomAnalysisManager::ResetEvent()
 {
-	foundPhoton = false;
-	photonTheta = -99.;
-	photonPhi = -99.;
-	photonR = -99.;
+    foundPhoton = false;
+    photonTheta = -99.;
+    photonPhi = -99.;
+    photonR = -99.;
     hitStats.clear();
     Helper_ResetEvent(evtStat0);
     if (gSNGun == 2) {
@@ -186,6 +188,7 @@ void MdomAnalysisManager::AnalyzeEvent() {
         }
     }
     
+    
 }
 
 
@@ -254,9 +257,15 @@ G4String nu;
         datafile << " | Total QE prob ";
     }
     datafile << G4endl;
-    datafile <<"# Module number | PMT number | hit time | theta (wrt LED) [rad]";
-    if (gQEweigh) {
-            datafile << "| QE prob";
+    if (gHittype == "individual") {
+        datafile <<"# Module number | PMT number | hit time | theta (wrt LED) [rad]";
+        if (gQEweigh) {
+                datafile << "| QE prob";
+        }
+    } else if (gHittype == "collective") {
+        datafile << "# Hits module 0 | Hits module 1 (first row PMT 0, second row PMT 1...) ";
+    } else {
+        G4cout << "ERROR: gHittype must be either individual or collective!!!!";
     }
     datafile << G4endl;
   }
@@ -355,6 +364,32 @@ void MdomAnalysisManager::Writer_data(std::fstream& thisfile, EvtStat& this_evtS
     }
     thisfile << G4endl;
 }
+
+
+void MdomAnalysisManager::WriteAccept()
+{
+    //write acceptance (only for photons, only for 2 modules so far)
+    int pmthits_module0[25] = {0};
+    int pmthits_module1[25] = {0};
+    int sum = 0;
+    //datafile << "# test header" << G4endl;
+    
+    // repacking hits:
+    for (int i = 0; i < (int) collectiveStat.pmtHit.size(); i++) {
+        if (collectiveStat.moduleHit.at(i) == 0) {
+            pmthits_module0[collectiveStat.pmtHit.at(i)] += 1;
+        } else if (collectiveStat.moduleHit.at(i) == 1) {
+            pmthits_module1[collectiveStat.pmtHit.at(i)] += 1;
+        } else {
+            G4cout << "ERROR WRITE ACCEPTANCE: More than 2 modules" << G4endl;
+        }
+    }
+    // wrinting collective hits
+    for (int j = 0; j < 24; j++) {
+        datafile << pmthits_module0[j] << "\t" << pmthits_module1[j] << G4endl;
+    }
+}
+
 
 void MdomAnalysisManager::testwritter(std::fstream& thisfile)
 {
