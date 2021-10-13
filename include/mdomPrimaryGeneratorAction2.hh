@@ -52,7 +52,6 @@ public:
 private:     
     G4ParticleGun*         ParticleGun;
 	void DistFunction(G4double Enu);
-    void GenerateGamma(G4double Energy, G4ThreeVector Position, G4Event* anEvent);
     G4double PositronEnergy(G4double nubar_energy, G4double costheta);
     G4double TotalCrossSection(G4double energy);
     G4double fixenergy;

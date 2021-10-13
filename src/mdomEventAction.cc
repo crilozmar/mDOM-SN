@@ -35,6 +35,7 @@ void mdomEventAction::EndOfEventAction(const G4Event* evt)
 	G4double Xev = evt->GetPrimaryVertex()->GetX0();
 	G4double Yev = evt->GetPrimaryVertex()->GetY0();
 	G4double Zev = evt->GetPrimaryVertex()->GetZ0();
+        //G4cout << Xev << " " << Yev << " " <<Zev << G4endl;
 	G4double Rev = pow(pow(Xev,2)+pow(Yev,2)+pow(Zev,2),1./2.); //Spherical R
 	
 	G4double Pxev = evt->GetPrimaryVertex()->GetPrimary()->GetPx();

@@ -46,7 +46,6 @@ G4double	gworldsize;
 G4double gRadius; // cylindrical world
 G4double gHeight; // cylindrical world
 G4int	gDepthpos;
-G4int gneutroncapture;
 
 G4double	gscintYield;
 G4double	gscintTimeConst;
@@ -168,7 +167,7 @@ std::vector<double> readColumnDouble (G4String fn, int col) {
 	}
 	infile.close();
 
-	return values;//values enthält den c. Wert aus fn (aus jeder Spalte,welche  nach 255 zeichen oder durch \n beendet wird?)
+	return values;//values enth??lt den c. Wert aus fn (aus jeder Spalte,welche  nach 255 zeichen oder durch \n beendet wird?)
 }
 
 void PointSource(double XGun, double YGun, double ZGun, double tGun, double fGun) {
@@ -453,7 +452,6 @@ int main(int argc,char *argv[])
 	struct arg_int  *depthpos	= arg_int0(NULL, "depthpos","<n>","\t\tDepth pos, check depth array in detectorconstruction to choose it propertly");
 	struct arg_int *SN	= arg_int0(NULL,"SN","<n>","\t\t0=Heavy type II SN ls220, 1=Light type II SN ls220, 2=type IA SN DDT");
 	struct arg_int	*SNGun 		= arg_int0(NULL, "SNgun", "<n>", "\t\tselect gun [GPS, SN ENEES, SN IBD [default without neutron capture]");
-    struct arg_int  *neutroncapture      = arg_int0(NULL, "neutroncapture", "<n>", "\t\tif SNgun=IBD, choose whether simulate also the neutron capture or not [0=No neutron capture, 1=Neutron capture as 2 MeV gamma, 2=Neutron capture as 8 MeV gamma, 3=Neutron capture as 2 MeV and 8 MeV gammas (separated files)]");
 	struct arg_lit	*Sun_e 		= arg_lit0(NULL, "Sun_e", "\t\tsimulate solar neutrinos -> nu_e interaction!");
 	struct arg_lit	*Sun_mu 		= arg_lit0(NULL, "Sun_mu", "\t\tsimulate solar neutrinos -> nu_mu and nu_tau interaction!");
 	struct arg_lit	*Sun_tau 		= arg_lit0(NULL, "Sun_tau", "\t\tsimulate solar neutrinos -> nu_mu and nu_tau interaction!");
@@ -502,7 +500,7 @@ int main(int argc,char *argv[])
 						visual,
 						nohead,
 						depthpos,
-						SN, SNGun,neutroncapture,
+						SN, SNGun,
 						Sun_e, Sun_mu, Sun_tau,
 						SNmeanEnergy,
 						alpha,
@@ -527,7 +525,7 @@ int main(int argc,char *argv[])
 	xpos->dval[0] = 0.0;
 	ypos->dval[0] = 0.0;
 	zpos->dval[0] = 300;
-	worldsize->dval[0] = 10.0;	// world diameter in meters -- NOT USED!!!!!
+	worldsize->dval[0] = 10.0;	// world diameter in meters.If SN is being simulated, this is the radius and half height of the world as a cylinder
 	diameter->dval[0] = 420.0;	// 400 mm # for 14" sphere, 480 mm # for 17" sphere 
 	distance->dval[0] = 1.0; // here value for mDOM scan with 2*mm safety margin
 	theta->dval[0] = 90.0;
@@ -541,7 +539,7 @@ int main(int argc,char *argv[])
 	n_mDOMs->ival[0] = 1;
 	
 	glass->ival[0] = 0;	// use VITROVEX as default
-	gel->ival[0] = 2;	// IceCube (SQI) as default	
+	gel->ival[0] = 1;	// Chiba gel as default	
 	conemat->ival[0] = 0;	// use Alemco V95 as default
 	holdercol->ival[0] = 0;	// use classic black holder as default
 	dom->ival[0] = 0;	// use mDOM as default
@@ -565,7 +563,6 @@ int main(int argc,char *argv[])
 	environment->ival[0] = 2;	// use spice as default
 	SN->ival[0] = 0; // Use heavy SN as default
 	SNGun->ival[0]=0; //gps by default
-	neutroncapture->ival[0]=0; //no neutron capture by default
 	reconstruction->ival[0] = 0; //No reconstruction by default
 	outputfile->filename[0] = "../ana/data.txt";
 	event2reconstruct->filename[0] = "event2reconstruct.cfg"; //Just because we need a default file. This non-real event is all 0. 
@@ -666,12 +663,6 @@ int main(int argc,char *argv[])
 		gSNGun = SNGun->ival[0];
 	}
 		
-	if ((neutroncapture->ival[0] < 0) || (neutroncapture->ival[0]>3)) {
-        G4cout << "INPUT ERROR -> neutroncapture must be between 0 and 3!!!" <<G4endl;
-        goto hell;
-    } else {
-        gneutroncapture = neutroncapture->ival[0];
-    }
 	gReconstruction = reconstruction->ival[0];
 	gEvent2Reconstruct = event2reconstruct->filename[0];
 	gQEfile = QEfile->filename[0];
@@ -690,6 +681,9 @@ int main(int argc,char *argv[])
 		} else if (SN->ival[0] == 3) {
 			gnufluxname = "nu_GCD.cfg";
 			gnubarfluxname = "nubar_GCD.cfg";
+		} else if (SN->ival[0] == 4) {
+			gnufluxname = "Flux_Nu_tailSN.cfg";
+			gnubarfluxname = "Flux_Nubar_tailSN.cfg";
 		} else {
 			G4cout << "ERROR!! Choose a valid SN model" << G4endl;
 			goto hell;

@@ -26,7 +26,6 @@ extern MdomAnalysisManager gAnalysisManager;
 extern G4double	gSNmeanEnergy;
 extern G4bool		gfixmeanenergy;
 extern G4double 	gfixalpha;
-extern G4int gneutroncapture;
 
 mdomPrimaryGeneratorAction2::mdomPrimaryGeneratorAction2(G4ParticleGun* gun)
 : ParticleGun(gun)
@@ -88,7 +87,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
   G4ThreeVector Position;
   SNToolBox.RandomPosition(Position);
   ParticleGun->SetParticlePosition(Position);
-  
+  //G4cout << Position << G4endl;
   beggining:
 
 
@@ -122,6 +121,10 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
 	Emean = fixenergy;
 	Emean2 = fixenergy2;
 	nubar_energy =  SNToolBox.InverseCumulAlgorithm(fixFe_X, fixFe_Y, fixFe_a, fixFe_Fc, fixE_nPoints);
+        while (nubar_energy <= ThresholdEnergy) {
+            //notice that, if fixE is very low, we might get stuck here a while for each particle
+            nubar_energy =  SNToolBox.InverseCumulAlgorithm(fixFe_X, fixFe_Y, fixFe_a, fixFe_Fc, fixE_nPoints);
+        }
   }
    
   // angle distribution. We suppose the incident antineutrino would come with momentum direction (0,0,-1)
@@ -130,7 +133,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
   G4double costheta = SNToolBox.InverseCumul(angdist_x, angdist_y, angdist_nPoints);
   G4double sintheta = std::sqrt(1. - costheta*costheta);
   G4double phi = twopi*G4UniformRand();
-  
+    
   G4double zdir = -costheta; 
   G4double xdir = -sintheta*std::cos(phi);
   G4double ydir = -sintheta*std::sin(phi);
@@ -157,32 +160,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
   //create vertex
   //   
   ParticleGun->GeneratePrimaryVertex(anEvent);
-  
-  //gammas of 2 MeV
-  if ((gneutroncapture == 1) || (gneutroncapture == 3)) {
-      G4double gammaE = 2*MeV;
-      GenerateGamma(gammaE, Position, anEvent);
-  }
-  if ((gneutroncapture == 2) || (gneutroncapture == 3)) {
-      G4double gammaE = 8*MeV;
-      GenerateGamma(gammaE, Position, anEvent);
-  }
 }
-
-
-void mdomPrimaryGeneratorAction2::GenerateGamma(G4double Energy, G4ThreeVector Position, G4Event* anEvent) 
-{
-  G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("gamma");
-  ParticleGun->SetParticleDefinition(particle); 
-  G4double xdir = G4UniformRand();
-  G4double ydir = G4UniformRand();
-  G4double zdir = G4UniformRand();
-  ParticleGun->SetParticleMomentumDirection(G4ThreeVector(xdir,ydir,zdir));
-  ParticleGun->SetParticlePosition(Position);
-  ParticleGun->SetParticleEnergy(Energy); 
-  ParticleGun->GeneratePrimaryVertex(anEvent);
-}
-
 
 void mdomPrimaryGeneratorAction2::DistFunction(G4double Enubar)
 {
@@ -248,7 +226,7 @@ G4double mdomPrimaryGeneratorAction2::PositronEnergy(G4double Enubar, G4double c
 G4double mdomPrimaryGeneratorAction2::TotalCrossSection(G4double energy) {
   // Returns value of the TotalCrossSection for certain energy to use it in WeighMe
   //
-  // T. Totani, K. Sato, H. E. Dalhed, J. R. Wilson,Future detection of supernova neutrino burst and explosion mechanism, Astrophys. J. 496 ,1998 216–225, Preprint astro-ph/9710203, 1998, Equation 9
+  // T. Totani, K. Sato, H. E. Dalhed, J. R. Wilson,Future detection of supernova neutrino burst and explosion mechanism, Astrophys. J. 496 ,1998 216???225, Preprint astro-ph/9710203, 1998, Equation 9
   G4double hbar = 6.58211899e-16*1e-6*MeV*s;
   G4double c = 3e8*m/s;
   G4double sigma0 = pow(2.*Gf*me*hbar*c,2)/pi;

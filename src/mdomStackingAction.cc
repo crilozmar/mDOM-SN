@@ -11,9 +11,7 @@
 #include "G4EventManager.hh"
 #include "G4SystemOfUnits.hh"
 
-extern G4int gSNGun;
 extern MdomAnalysisManager gAnalysisManager;
-extern G4int gneutroncapture;
 
 mdomStackingAction::mdomStackingAction() {}
 
@@ -36,16 +34,7 @@ G4ClassificationOfNewTrack mdomStackingAction::ClassifyNewTrack(const G4Track * 
 		}
 	}
 	*/
-     if ((gSNGun == 2) && (gneutroncapture > 0)) { 
-        if (aTrack->GetParentID() == 0) {
-            gAnalysisManager.ClasifyTracks_New(aTrack->GetDefinition()->GetParticleName(), aTrack->GetKineticEnergy(), aTrack->GetTrackID());
-        } else {
-            //G4cout << "track id "<<aTrack->GetTrackID() << " | parent ID " << aTrack->GetParentID() << G4endl;
-
-            gAnalysisManager.ClasifyTracks_AddTrack(aTrack->GetDefinition()->GetParticleName(), aTrack->GetTrackID(), aTrack->GetParentID());
-        }
-     }
-	return fUrgent;
+    return fUrgent;
 	
 }
 
