@@ -16,7 +16,7 @@ else()
 endif()
 
 # try to use ROOT libraries
-set (CMAKE_MODULE_PATH /Applic.ZIV/CentOS7/software/p0kapp/software/geant4/10.4.02.p01/lib64/Geant4-10.2.1/Modules/)
+set (CMAKE_MODULE_PATH /data/c_loza01/Geant4-10.02.p03/geant4.10.02.p03-install/lib/Geant4-10.2.3/Modules)
 # try to use ROOT libraries
 #find_package(ROOT)
 
@@ -36,8 +36,9 @@ LINK_DIRECTORIES(/Applic.ZIV/CentOS7/software/p0kapp/software/lib)
 # details for the finished binary
 add_executable(mdom mdom.cc ${sources} ${headers})
 
-target_link_libraries(mdom ${Geant4_LIBRARIES} argtable2 ${ROOT_LIBRARIES})
-
+# target_link_libraries(mdom ${Geant4_LIBRARIES} argtable2 ${ROOT_LIBRARIES})
+# manually add arg-table 
+target_link_libraries(mdom ${Geant4_LIBRARIES} /usr/lib/x86_64-linux-gnu/libargtable2.so.0 )
 
 # which auxiliary files out of the source directory should be copied to the directory of the binary
 set(mdom_aux

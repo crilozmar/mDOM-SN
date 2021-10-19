@@ -318,11 +318,16 @@ int mdom() {
 	G4VUserPhysicsList* physics = new mdomPhysicsList;
 	runManager->SetUserInitialization(physics);
 
+        /*
 	#ifdef G4VIS_USE
  		G4VisManager* visManager = new G4VisExecutive;
  		visManager->Initialize();
  		visManager->SetVerboseLevel(0);
 	#endif
+	*/
+        auto visManager = new G4VisExecutive;
+        visManager->Initialize();
+        visManager->SetVerboseLevel(0);
 	G4VUserPrimaryGeneratorAction* gen_action = new mdomPrimaryGeneratorAction();
 	runManager->SetUserAction(gen_action);
     

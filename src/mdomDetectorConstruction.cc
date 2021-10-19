@@ -28,6 +28,7 @@
 //since Geant4.10: include units manually
 #include "G4SystemOfUnits.hh"
 // #include "G4Cache.hh"
+#include "G4Navigator.hh"
 
 // extern G4String ghitsfilename;
 // extern G4String	gabsfilename;

@@ -3,6 +3,7 @@
 
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
+#include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

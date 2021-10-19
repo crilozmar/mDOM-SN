@@ -81,6 +81,7 @@ void mdomPhysicsList::ConstructProcess()
 	G4Decay* theDecayProcess = new G4Decay();
 	
 //	Now assign processes to generated particles
+        auto theParticleIterator=GetParticleIterator(); //new geant4
 	theParticleIterator->reset();
 	while( (*theParticleIterator)() ){
 		
