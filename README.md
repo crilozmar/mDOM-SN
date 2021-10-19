@@ -91,3 +91,4 @@ The outputs are written by the mdomAnalysisManager class. Lets say the output fi
   ** Total hits | PMTs hit |...for each PMT hit...| Module number | PMT number | Hits in that PMT |...for each hit in that PMT... hit time |
   
   * Only detected events are saved. Each line in data.txt correspond to the same line in data_info.txt
+  * HitTimes are with respect to the time of the particle generation
