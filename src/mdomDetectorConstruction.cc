@@ -3196,9 +3196,9 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     
     // Placing the icecolumn, already cutted from mdom, ropes and harness
     
-    HoleIceTube_inner_cut_logical = new G4LogicalVolume(HoleIceTube_inner_cut_solid, Mat_HoleIce, "HoleIceTube_inner_cut_logical");
-    HoleIceTube_inner_cut_physical = new G4PVPlacement(0, G4ThreeVector(0), //HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", HoleIceTube_outer_logical, false, 0); // this if outer column also simulated
-    HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", World_logical, false, 0); 
+    //HoleIceTube_inner_cut_logical = new G4LogicalVolume(HoleIceTube_inner_cut_solid, Mat_HoleIce, "HoleIceTube_inner_cut_logical");
+    //HoleIceTube_inner_cut_physical = new G4PVPlacement(0, G4ThreeVector(0), //HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", HoleIceTube_outer_logical, false, 0); // this if outer column also simulated
+    //HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", World_logical, false, 0); 
     
     // placing PMTs & RefCones (into gel)
     std::stringstream converter;
