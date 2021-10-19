@@ -1,3 +1,11 @@
+/** @file mdom.cc
+ *  @brief Main function
+ * 
+ *  @author Lew Classen (lclassen@wwu.de), Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomDetectorConstruction.hh"
 #include "mdomPhysicsList.hh"
 #include "mdomPrimaryGeneratorAction.hh"
@@ -551,8 +559,8 @@ int main(int argc,char *argv[])
 	
 	cone_ang->dval[0] = 51.0; // [degrees]	
 	
-	mdomharness->ival[0] = 1;
-	ropes->ival[0]=1;
+	mdomharness->ival[0] = 0;
+	ropes->ival[0]=0;
 	
 	scintYield->dval[0] = 57.0;
 	scintTimeConst->dval[0] = 300000.0;

@@ -1,3 +1,11 @@
+/** @file mdomSteppingAction.cc
+ *  @brief Geant4 stepping action. Here it is check whether photons reach the photomultipliers and are detected.
+ * 
+ *  @author Lew Classen (lclassen@wwu.de), Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomSteppingAction.hh"
 
 #include "G4RunManager.hh"

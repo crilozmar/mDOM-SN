@@ -1,3 +1,11 @@
+/** @file mdomPhysicsList.cc
+ *  @brief Geant4 physic list
+ * 
+ *  @author Lew Classen (lclassen@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPhysicsList.hh"
 #include "G4ProcessManager.hh"
 #include "G4ParticleTypes.hh"

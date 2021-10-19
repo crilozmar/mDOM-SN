@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction.cc
+ *  @brief Main primary generator. Chooses between generators 0 (gps), 1 (SN enes), 2 (SN ibd), 3 (solar neutrinos)
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction0.hh"
 #include "mdomPrimaryGeneratorAction1.hh"

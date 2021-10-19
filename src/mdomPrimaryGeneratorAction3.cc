@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction2.cc
+ *  @brief Primary generator. Produces electrons coming from enes of solar neutrinos
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction3.hh"
 #include "mdomDetectorConstruction.hh"
@@ -233,7 +241,7 @@ G4double mdomPrimaryGeneratorAction3::TotalCrossSection(G4double energy) {
   // Returns value of the TotalCrossSection for certain energy to use it in WeighMe
   //
   //M. Buchkremer, Electroweak Interactions: Neutral currents in neutrino-lepton elastic
-  // scattering experiments, Universit ́e Catholique de Louvain /CP3, 2011.
+  // scattering experiments, Universit ??e Catholique de Louvain /CP3, 2011.
   G4double sigma;
   G4double sin2thetaw = 0.231;
   if (gSun_nue == true) {

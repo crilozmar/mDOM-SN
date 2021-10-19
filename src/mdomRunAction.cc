@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction2.cc
+ *  @brief Geant4 run action
+ * 
+ *  @author Lew Classen (lclassen@wwu.de), Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomRunAction.hh"
 
 #include "G4Run.hh"

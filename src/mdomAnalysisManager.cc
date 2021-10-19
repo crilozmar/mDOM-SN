@@ -1,3 +1,11 @@
+/** @file mdomAnalysisManager.cc
+ *  @brief Analyze data and write output files
+ * 
+ *  @author Lew Classen (lclassen@wwu.de), Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomAnalysisManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "mdomMinimization.hh"

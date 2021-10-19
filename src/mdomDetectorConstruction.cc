@@ -1,3 +1,11 @@
+/** @file mdomDetectorConstruction.cc
+ *  @brief Construct the mDOM and the world
+ * 
+ *  @author Lew Classen (lclassen@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomDetectorConstruction.hh"
 #include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"

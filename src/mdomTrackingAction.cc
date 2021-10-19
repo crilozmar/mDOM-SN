@@ -1,3 +1,11 @@
+/** @file mdomStackingAction.cc
+ *  @brief Geant4 tracking action
+ * 
+ *  @author Lew Classen (lclassen@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomEventAction.hh"
 #include "mdomTrackingAction.hh"
 #include "mdomRunAction.hh"

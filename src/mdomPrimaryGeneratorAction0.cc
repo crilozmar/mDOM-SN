@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction0.cc
+ *  @brief Primary generator. It just uses GPS
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction0.hh"
 #include "mdomDetectorConstruction.hh"

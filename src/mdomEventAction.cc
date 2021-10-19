@@ -1,3 +1,11 @@
+/** @file mdomEventAction.cc
+ *  @brief Geant4 Event action
+ * 
+ *  @author Lew Classen (lclassen@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomEventAction.hh"
 #include "mdomRunAction.hh"
 #include "mdomTrackingAction.hh"

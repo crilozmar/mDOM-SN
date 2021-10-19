@@ -1,3 +1,11 @@
+/** @file mdomStackingAction.cc
+ *  @brief Geant4 stacking action
+ * 
+ *  @author Lew Classen (lclassen@wwu.de), Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomStackingAction.hh"
 #include "mdomSteppingAction.hh"
 #include "mdomAnalysisManager.hh"

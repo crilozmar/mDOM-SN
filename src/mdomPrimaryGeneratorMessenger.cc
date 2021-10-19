@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorMessenger.cc
+ *  @brief Primary generator messenger to choose the corresponding primary generator.
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorMessenger.hh"
 #include "mdomPrimaryGeneratorAction.hh"
 #include "G4UIdirectory.hh"

@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction1.cc
+ *  @brief Primary generator. Produces electrons coming from elastic scattering of SN neutrinos
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction1.hh"
 #include "mdomDetectorConstruction.hh"
@@ -205,7 +213,7 @@ G4double mdomPrimaryGeneratorAction1::TotalCrossSection(G4double energy) {
   // Returns value of the TotalCrossSection for certain energy to use it in WeighMe
   //
   //M. Buchkremer, Electroweak Interactions: Neutral currents in neutrino-lepton elastic
-  // scattering experiments, Universit ́e Catholique de Louvain /CP3, 2011.
+  // scattering experiments, Universit ??e Catholique de Louvain /CP3, 2011.
   G4double sin2thetaw = 0.231;
   G4double sigma = pow(Gf,2)*me*energy/(2.*pi)*(1.+4.*sin2thetaw+16./3.*pow(sin2thetaw,2))*pow(197.326e-15,2)*m*m;
   //G4cout << "CRRROOOOOOOOSSSSSEEEEECCCCTTTIIIIIOOOOONNNN   " << sigma/(m*m) << " of energy "<< energy/MeV << G4endl;

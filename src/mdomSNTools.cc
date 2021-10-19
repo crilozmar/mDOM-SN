@@ -1,3 +1,11 @@
+/** @file mdomSNTools.cc
+ *  @brief This class is used by mdomPrimaryGeneratorAction1 and 2 to produce SN neutrino interactions.
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomSNTools.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"

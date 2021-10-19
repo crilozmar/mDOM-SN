@@ -1,3 +1,11 @@
+/** @file mdomSteppingVerbose.cc
+ *  @brief Geant4 stepping verbose class
+ * 
+ *  @author Lew Classen (lclassen@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomSteppingVerbose.hh"
 
 #include "G4SteppingManager.hh"

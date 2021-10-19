@@ -1,3 +1,11 @@
+/** @file mdomMinimization.cc
+ *  @brief Minimizer. Only used for concrete studies.
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomMinimization.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4SimplexDownhill.hh"

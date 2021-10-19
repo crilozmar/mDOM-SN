@@ -1,3 +1,11 @@
+/** @file mdomPrimaryGeneratorAction2.cc
+ *  @brief Primary generator. Produces positrons coming from inverse beta decay of SN antineutrinos
+ * 
+ *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
+ * 
+ *  @version Geant4 10.7
+ */
+
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction2.hh"
 #include "mdomDetectorConstruction.hh"
