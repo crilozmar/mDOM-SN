@@ -67,7 +67,7 @@ double hc_eVnm = 1239.84193; // h*c in eV * nm
 G4double hc_eVnm_w_units = 1239.84193*eV*nm; // h*c in eV * nm
 
 // defining mDOM dimensions:
-G4double GlasOutRad = 0.5*356*mm;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
+G4double GlasOutRad = 0.5*353*mm;	// outer radius of galss cylinder (pressure vessel); roughly 0.5*13"
 G4double GlasThick = 13*mm;			// maximum glass thickness
 G4double GlasInRad = GlasOutRad - GlasThick;
 G4double CylHigh = 27.5*mm;			// height of cylindrical part of glass half-vessel
@@ -91,7 +91,7 @@ mdomDetectorConstruction::~mdomDetectorConstruction()
 
 // --------------Mie scattering in ice, Ice absorption and Ice refraction-----------------
 // Formula and data from :
-//	M.G.Aartsen et al., Nuclear Instruments and Methods in Physics Research A 711 (2013) 73–89.
+//	M.G.Aartsen et al., Nuclear Instruments and Methods in Physics Research A 711 (2013) 73???89.
 //	M. Ackermann, et al., Journal of Geophysical Research 111 (2006) D13203.
 
 const G4int NUMENTRIES_ICE = 61;
@@ -2060,7 +2060,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   
   // ---------------------- Wacker gel -----------------------------------------------------
   // from old KM3NeT measuremts 
-  // used by Björn and Claudio, Christophe uses same values, scaled down by 2
+  // used by Bj??rn and Claudio, Christophe uses same values, scaled down by 2
   
   G4double WackerGelRInd[49];
   for (i = 0; i < 49; i++) { WackerGelRInd[i] = 1.404; }
@@ -2671,7 +2671,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   //	Constructing of Hamamatsu R12199 and ETEL 9320KFL "three inch" PMTs: --------------------------------------------------
   
   G4double RefCone_SheetThickness = 0.5*mm;	// aluminum sheet thickness true for all reflective cones
-  G4double RefCone_ConeToHolder = 1.55*mm;	// horizontal distance from Kärcher's construction 
+  G4double RefCone_ConeToHolder = 1.55*mm;	// horizontal distance from K??rcher's construction 
   
   //	Hamamatsu R12199: spherical window --------------------------------------------------------------------------------------------------------------
   //	sphere and ellipsoid for front half, cylinder for back
@@ -2749,7 +2749,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   PC_12199_shield_physical = new G4PVPlacement (0, G4ThreeVector(0,0,PC_12199_CathodeLimit - PC_12199_ShieldToCathode), PC_12199_shield_logical, "PC_12199 shield physical", PMT_12199_tube_logical, false, 0);
   
   //	//	12199 RefCone:
-  // 	using Kärcher's geometry and real metal sheet thickness
+  // 	using K??rcher's geometry and real metal sheet thickness
   G4double RefCone_12199_InDiam = 82*mm;
   G4double RefCone_12199_OutDiam = 107.5*mm;
   G4double RefCone_12199_dZ = (RefCone_12199_OutDiam - RefCone_12199_InDiam)*0.25;
@@ -2789,7 +2789,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   PC_ETEL_shield_physical = new G4PVPlacement (0, G4ThreeVector(0,0, PC_ETEL_CathodeLimit - PC_ETEL_ShieldToCathode), PC_ETEL_shield_logical, "PC_ETEL shield physical", PMT_ETEL_tube_logical, false, 0);
   
   //	ETEL RefCone:
-  // 	using Kärcher's geometry and real metal sheet thickness
+  // 	using K??rcher's geometry and real metal sheet thickness
   G4double RefCone_ETEL_InDiam = 90*mm;
   G4double RefCone_ETEL_OutDiam = 107.5*mm;
   G4double RefCone_ETEL_dZ = (RefCone_ETEL_OutDiam - RefCone_ETEL_InDiam)*0.25;
@@ -2804,7 +2804,7 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   G4UnionSolid* RefConeNest_ETEL_solid = new G4UnionSolid("RefConeNest_ETEL solid", PMT_ETEL_tube_solid, RefConeNest_ETEL_cone_solid, 0, G4ThreeVector(0,0,30*mm));
   
   
-  //	Hamamatsu R12199: ellipsoidal window, deviation from real surface ca. 1 mm (Björn style) -------------------------------------------------------------
+  //	Hamamatsu R12199: ellipsoidal window, deviation from real surface ca. 1 mm (Bj??rn style) -------------------------------------------------------------
   //	ellipsoid for front half, cylinder for back, 
   //	z-semiaxis: 23.3mm, x,y: 40mm
   G4ThreeVector PMT80_ort_1;
@@ -2866,7 +2866,10 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   PC10_shield_physical = new G4PVPlacement(0, G4ThreeVector(0, 0, sqrt((Tube10_geo_curvature_radius-2)*(Tube10_geo_curvature_radius-2)-110.0*110.0)*mm-2.5*mm), PC10_shield_logical, "PC10 shield physical", PMT10_tube_logical, false, 0);
   
   
+
+  
   //	DOM construction ------------------------------------------------------------------------------------------------------------------------------
+  
   
   //	Glass
   // 	GlassSphereTop_solid = new G4Sphere("GlassSphereTop solid", 0, GlasOutRad, 0, 2*pi, 0, 0.51*pi);
@@ -2878,6 +2881,8 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
   G4UnionSolid* temp_union = new G4UnionSolid("temp", GlassCylinder_solid, GlassSphereTop_solid, transformers);
   transformers = G4Transform3D(G4RotationMatrix(), G4ThreeVector(0,0,-CylHigh));
   Glass_solid = new G4UnionSolid("OM glass body", temp_union, GlassSphereBottom_solid, transformers);
+  
+  
   
   //  Gel
   // 	GelSphereTop_solid = new G4Sphere("GelSphereTop solid", 0, GlasOutRad - GlasThick, 0, 2*pi, 0, 0.51*pi);
@@ -3144,6 +3149,8 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
 		Rope_surface = new G4LogicalSkinSurface("Rope_surface", Rope_logical, PDOM_Harness_optical); //same optical properties than the harness
 		
     
+                
+        
     //  Placing da stuff ----------------------------------------------------------------------------------------------------------------------------------
     rot = new G4RotationMatrix();
     
@@ -3186,6 +3193,12 @@ G4VPhysicalVolume* mdomDetectorConstruction::Construct() {
     RefConeType2_logical = new G4LogicalVolume(RefConeType2_solid, Mat_Reflector, "RefConeType2 logical");
     RefConeType3_logical = new G4LogicalVolume(RefConeType3_solid, Mat_Reflector, "RefConeType3 logical");
     
+    
+    // Placing the icecolumn, already cutted from mdom, ropes and harness
+    
+    HoleIceTube_inner_cut_logical = new G4LogicalVolume(HoleIceTube_inner_cut_solid, Mat_HoleIce, "HoleIceTube_inner_cut_logical");
+    HoleIceTube_inner_cut_physical = new G4PVPlacement(0, G4ThreeVector(0), //HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", HoleIceTube_outer_logical, false, 0); // this if outer column also simulated
+    HoleIceTube_inner_cut_logical, "HoleIceTube_inner_cut_physical", World_logical, false, 0); 
     
     // placing PMTs & RefCones (into gel)
     std::stringstream converter;
@@ -3725,7 +3738,7 @@ void mdomDetectorConstruction::PlacingHarnessAndRopes(G4double zpos, G4RotationM
 		G4double gHicetube_pos_x = 0;
 		G4double totalDOMsize = 0;
 		G4double gHicetube_pos_y= 0;
-		//Now the rope gets placed uniformly distributed around the harness (if 3 ropes then with an angular distance of 120°)
+		//Now the rope gets placed uniformly distributed around the harness (if 3 ropes then with an angular distance of 120??)
 		//Therefore the rope solid gets rotated around the z and y axes and a transformation vector is filled with the stuff just defined above
 		//After that the rope solid gets tucked onto the harness -> RopeHarnessUnion
 		//Then the same is done with the other part of the rope cuz only one half of the rope was dealt with yet
@@ -3748,7 +3761,8 @@ void mdomDetectorConstruction::PlacingHarnessAndRopes(G4double zpos, G4RotationM
 			TransformationVector = G4ThreeVector((ropeDistance - radialShift) * cos(360. / user_NbOfRopes * (it + 1) * deg) + gHicetube_pos_x * totalDOMsize, -(ropeDistance - radialShift) * sin(360. / user_NbOfRopes * (it + 1) * deg) + gHicetube_pos_y * totalDOMsize, -zShift) + G4ThreeVector(0,0,zpos);
 			converter.str("");
 			converter << "Rope_solid_" << user_NbOfRopes + it;
-			
+
+                        
 			Rope_physical[user_NbOfRopes + it] = new G4PVPlacement(rot, TransformationVector, Rope_logical, converter.str(), World_logical, false, 0);
 		} 
 	}
