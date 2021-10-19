@@ -92,3 +92,5 @@ The outputs are written by the mdomAnalysisManager class. Lets say the output fi
   
   * Only detected events are saved. Each line in data.txt correspond to the same line in data_info.txt
   * HitTimes are with respect to the time of the particle generation
+ 
+ Please report bugs to c.lozano@wwu.de / cjlmariscal@icecube.wisc.edu
