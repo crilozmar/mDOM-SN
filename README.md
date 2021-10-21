@@ -88,7 +88,7 @@ The outputs are written by the mdomAnalysisManager class. Lets say the output fi
   
   * data.txt: Contains the hit information. Notice that this file must be read by lines, since each line can have different column size depending on the detected photons.
   
-  ** Total hits | PMTs hit |...for each PMT hit...| Module number | PMT number | Hits in that PMT |...for each hit in that PMT... hit time |
+  ** Total hits | Modules hit | PMTs hit |...for each PMT hit...| Module number | PMT number | Hits in that PMT |...for each hit in that PMT... hit time |
   
   * Only detected events are saved. Each line in data.txt correspond to the same line in data_info.txt
   * HitTimes are with respect to the time of the particle generation
