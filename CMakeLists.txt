@@ -44,7 +44,6 @@ target_link_libraries(mdom ${Geant4_LIBRARIES} /usr/lib/x86_64-linux-gnu/libargt
 set(mdom_aux
         aux/vis.mac
         aux/vis.ogl
-        refraction.cfg
         mdom.gps
         QuantumEfficiency.cfg
 )
