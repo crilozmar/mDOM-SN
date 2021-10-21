@@ -8,7 +8,6 @@
 
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction1.hh"
-#include "mdomDetectorConstruction.hh"
 #include "mdomAnalysisManager.hh"
 
 

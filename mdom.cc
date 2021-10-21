@@ -6,7 +6,7 @@
  *  @version Geant4 10.7
  */
 
-#include "mdomDetectorConstruction.hh"
+#include "OMSimDetectorConstruction.hh"
 #include "mdomPhysicsList.hh"
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomRunAction.hh"
@@ -55,10 +55,6 @@ G4double gRadius; // cylindrical world
 G4double gHeight; // cylindrical world
 G4int	gDepthpos;
 
-G4double	gscintYield;
-G4double	gscintTimeConst;
-G4double	gscintSpectrum;
-G4double	gTemperature;
 G4double	gRefCone_angle;
 
 G4bool gropes;
@@ -319,8 +315,8 @@ int mdom() {
 
 	G4RunManager* runManager = new G4RunManager;
 
-	mdomDetectorConstruction* detector;
-	detector = new mdomDetectorConstruction();
+	OMSimDetectorConstruction* detector;
+	detector = new OMSimDetectorConstruction();
 	runManager->SetUserInitialization(detector);
 
 	G4VUserPhysicsList* physics = new mdomPhysicsList;
@@ -444,15 +440,9 @@ int main(int argc,char *argv[])
 	struct arg_int	*holdercol 	= arg_int0("cC", "holdercol", "<n>", "\t\t\tcone color [BLACK, white (Lambertian R = 98%)]");
 	struct arg_int	*dom 		= arg_int0("mM", "om, dom", "<n>", "\t\t\tmodule type [MDOM, PDOM]");
 	struct arg_dbl  *cone_ang   = arg_dbl0(NULL, "cone_ang","<n>","\t\t\topening semi-angle of cone; (45 deg)");	
-	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1");	
-	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1");	
+	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1 [TO BE IMPLEMENTED]");	
+	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1 [TO BE IMPLEMENTED]");	
 
-	
-	struct arg_dbl	*scintYield	= arg_dbl0(NULL, "scintYield", "<n>", "\t\tScintillation Yield of the glass (only Vitrovex). Default 57/MeV");
-	struct arg_dbl	*scintTimeConst	= arg_dbl0(NULL, "scintTimeConst", "<n>", "\t\tScintillation's Time constant of the glass (only Vitrovex) in ns. Default 300000.");
-	struct arg_dbl	*scintSpectrum	= arg_dbl0(NULL, "scintSpectrum", "<n>", "\t\tMove the scintillation's spectrum by # nm. Default 0 nm.");
-	struct arg_dbl	*Temperature 	= arg_dbl0(NULL, "Temperature", "<n>", "\t\t Temperature for material property selection");
-	
 	struct arg_int  *environment= arg_int0("eE", "environment","<n>","\t\tmedium in which the setup is emmersed [AIR, ice, spice]");
 	struct arg_file *outputfile	= arg_file0("oO","output","<file.txt>","\t\tfilename for hits data");
 	struct arg_int  *hittype	= arg_int0("hH", "hits","<n>","\t\thit collection [individual, COLLECTIVE]");
@@ -500,11 +490,6 @@ int main(int argc,char *argv[])
 						cone_ang,
 						mdomharness,
 						ropes,
-						
-						scintYield,
-						scintTimeConst,
-						scintSpectrum,
-						Temperature,
 						
 						environment,
 						outputfile,
@@ -561,11 +546,6 @@ int main(int argc,char *argv[])
 	
 	mdomharness->ival[0] = 0;
 	ropes->ival[0]=0;
-	
-	scintYield->dval[0] = 57.0;
-	scintTimeConst->dval[0] = 300000.0;
-	scintSpectrum->dval[0] = 0.0;
-	Temperature->dval[0] = -35;
 	
 	//outputfile->filename[0] = "../output/mdom_testoutput_scan_angular.txt";
 	hittype->ival[0] = 1;		// store information on collective hits as default
@@ -638,12 +618,7 @@ int main(int argc,char *argv[])
 	gDOM = dom->ival[0];
 	
 	gRefCone_angle = cone_ang->dval[0];		
-	
-	gscintYield = scintYield->dval[0];
-	gscintTimeConst = scintTimeConst->dval[0];
-	gscintSpectrum = scintSpectrum->dval[0];
-	gTemperature = Temperature->dval[0];
-	
+
 	gDepthpos = depthpos->ival[0];
 	gEnvironment = environment->ival[0];
 	gfilename = outputfile->filename[0];

@@ -146,7 +146,7 @@
 #/vis/scene/add/text 6 7 10 cm 18 4 4 Shape2
 #
 # To get nice view
-/vis/geometry/set/visibility World_log 0 false
+/vis/geometry/set/visibility World_log 0
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 120 150

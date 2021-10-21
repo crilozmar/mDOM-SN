@@ -1,0 +1,61 @@
+{
+   "jName": "om_LOM",
+   "jGlassOutRad": {
+      "jValue": 153.2,
+      "jUnit": "mm"
+   },
+   "jGlassThick": {
+      "jValue": 12.0,
+      "jUnit": "mm"
+   },
+   "jCylHigh": {
+      "jValue": 68.8,
+      "jUnit": "mm"
+   },
+   "lCylinderAngle": {
+      "jValue": 2.5,
+      "jUnit": "deg"
+   },
+   "jGelThicknessFrontPMT": {
+      "jValue": 3.6,
+      "jUnit": "mm"
+   },
+   "jGelThickness": {
+      "jValue": 4.5,
+      "jUnit": "mm"
+   },
+   "jEqPMTrOffset": {
+      "jValue": 2.6,
+      "jUnit": "mm"
+   },
+   "jEqPMTzOffset": {
+      "jValue": 62.5,
+      "jUnit": "mm"
+   },
+   "jRefConeHalfZ": {
+      "jValue": 15,
+      "jUnit": "mm"
+   },
+   "lRefConeSheetThickness": {
+      "jValue": 0.5,
+      "jUnit": "mm"
+   },
+   "jRefConeToHolder": {
+      "jValue": 1.55,
+      "jUnit": "mm"
+   },
+   "jThetaPolar": {
+      "jValue": 35.0,
+      "jUnit": "deg"
+   },
+   "jThetaEquatorial": {
+      "jValue": 57.0,
+      "jUnit": "deg"
+   },
+   "jNrPolarPMTs": 4,
+   "jNrEqPMTs": 4,
+   "jPolEqPMTPhiPhase": {
+      "jValue": 45.0,
+      "jUnit": "deg"
+   }
+}

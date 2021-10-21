@@ -8,7 +8,6 @@
 
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction0.hh"
-#include "mdomDetectorConstruction.hh"
 
 #include "G4Event.hh"
 #include "G4GeneralParticleSource.hh"

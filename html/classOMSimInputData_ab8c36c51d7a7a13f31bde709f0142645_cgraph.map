@@ -1,0 +1,7 @@
+<map id="OMSimInputData::MaterialFromFile" name="OMSimInputData::MaterialFromFile">
+<area shape="rect" id="node2" href="$classOMSimInputData.html#afe0f9c2c3f89238612f67b0515ac0781" title="OMSimInputData::ParseToVector" alt="" coords="443,38,661,65"/>
+<area shape="rect" id="node3" href="$classOMSimInputData.html#a9fefa114457374acff06a2f6f72723c0" title="OMSimInputData::Spice\l_Refraction" alt="" coords="231,27,395,68"/>
+<area shape="rect" id="node4" href="$classOMSimInputData.html#a145f8b793478bb3b8a37116708f2f0e8" title="OMSimInputData::Spice\l_Absorption" alt="" coords="231,158,395,199"/>
+<area shape="rect" id="node6" href="$classOMSimInputData.html#acdc31321ca3ecc679bcd7e3e2276d9b8" title="OMSimInputData::Mie\l_Scattering" alt="" coords="237,92,389,134"/>
+<area shape="rect" id="node5" href="$classOMSimInputData.html#a7dbfccc87264b21158ba13f044fd794f" title="OMSimInputData::Spice\l_Temperature" alt="" coords="470,158,634,199"/>
+</map>

@@ -8,7 +8,6 @@
 
 #include "mdomPrimaryGeneratorAction.hh"
 #include "mdomPrimaryGeneratorAction2.hh"
-#include "mdomDetectorConstruction.hh"
 #include "mdomAnalysisManager.hh"
 
 
@@ -72,7 +71,6 @@ mdomPrimaryGeneratorAction2::mdomPrimaryGeneratorAction2(G4ParticleGun* gun)
   mn = neutron_mass_c2;
   consg = 1.26;
 
-  
   NTargets = NumberOfTargets(2); //2 protons (hydrogen) per molecule
 
 }
@@ -86,12 +84,13 @@ mdomPrimaryGeneratorAction2::~mdomPrimaryGeneratorAction2()
 
 void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
 {
+
     // Particle and position
   G4ParticleDefinition* particle = G4ParticleTable::GetParticleTable()->FindParticle("e+");
   ParticleGun->SetParticleDefinition(particle);
   
   mdomSNTools SNToolBox;
-  
+
   G4ThreeVector Position;
   SNToolBox.RandomPosition(Position);
   ParticleGun->SetParticlePosition(Position);
@@ -114,6 +113,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
 
   ThresholdEnergy = neutron_mass_c2 + electron_mass_c2 - proton_mass_c2+0.1*MeV; //+0.1MeV because angularcrosssection fails if the energy is too close to the threshold.
   nubar_energy = 0;
+
   G4int count = 0;
   while (nubar_energy <= ThresholdEnergy) {
     nubar_energy = SNToolBox.EnergyDistribution(Emean, Emean2, alpha);
@@ -134,7 +134,7 @@ void mdomPrimaryGeneratorAction2::GeneratePrimaries(G4Event* anEvent)
             nubar_energy =  SNToolBox.InverseCumulAlgorithm(fixFe_X, fixFe_Y, fixFe_a, fixFe_Fc, fixE_nPoints);
         }
   }
-   
+
   // angle distribution. We suppose the incident antineutrino would come with momentum direction (0,0,-1)
   DistFunction(nubar_energy);
   

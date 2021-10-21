@@ -170,7 +170,7 @@ void MdomAnalysisManager::WriteHeader()
 
 void MdomAnalysisManager::HelpTheHeader(std::fstream& thisfile)
 {
-    thisfile << "# Total hits | PMTs hit |";
+    thisfile << "# Total hits | Modules hit | PMTs hit |";
     if (gQEweigh) {
         thisfile << " Total QE prob |";
     }

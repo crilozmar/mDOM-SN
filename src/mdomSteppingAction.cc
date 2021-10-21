@@ -94,7 +94,7 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
 	// Check if optical photon is about to hit a photocathode, if so, destroy it and save the hit
 	if ( aTrack->GetDefinition()->GetParticleName() == "opticalphoton" ) {
             if ( aTrack->GetTrackStatus() != fStopAndKill ) {
-                if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "Photocathode" ) {
+                if ( aStep->GetPostStepPoint()->GetMaterial()->GetName() == "RiAbs_Photocathode" ) {
                     Ekin = (aTrack->GetKineticEnergy());
                     lambda = h*c/Ekin;
                     if ( (!gQE) || ( (QEcheck(lambda)) && (gQE)) || (gQEweigh)) {
