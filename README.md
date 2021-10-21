@@ -94,3 +94,7 @@ The outputs are written by the mdomAnalysisManager class. Lets say the output fi
   * HitTimes are with respect to the time of the particle generation
  
  Please report bugs to c.lozano@wwu.de / cjlmariscal@icecube.wisc.edu
+ 
+ # TODO list:
+ * Include QE input files using OMSimInputData as the rest of input files.
+ * Include harness, ropes and external cables.
