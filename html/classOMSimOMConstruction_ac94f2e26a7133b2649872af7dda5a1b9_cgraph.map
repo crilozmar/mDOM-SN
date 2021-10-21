@@ -1,7 +1,0 @@
-<map id="OMSimOMConstruction::SelectModule" name="OMSimOMConstruction::SelectModule">
-<area shape="rect" id="node2" href="$classOMSimOMConstruction.html#a60234d4257445b63c608f93453b92ae2" title="OMSimOMConstruction\l::pDOMConstruction" alt="" coords="217,5,379,47"/>
-<area shape="rect" id="node5" href="$classOMSimOMConstruction.html#a625e762b3d94bf394caa6dc81d59cff4" title="OMSimOMConstruction\l::MultiPMTopticalModule" alt="" coords="215,71,381,112"/>
-<area shape="rect" id="node3" href="$classOMSimInputData.html#a1313cb66907920eae3b8e05a94f8cb4f" title="OMSimInputData::GetMaterial" alt="" coords="429,71,628,98"/>
-<area shape="rect" id="node4" href="$classOMSimInputData.html#a0344e534196bb6ea9897f96835da44cd" title="OMSimInputData::GetOptical\lSurface" alt="" coords="432,5,625,47"/>
-<area shape="rect" id="node6" href="$classOMSimInputData_1_1ParameterTable.html#ad181a8aa37de369b8980c317a11f2cb0" title="OMSimInputData::Parameter\lTable::Get" alt="" coords="433,123,624,164"/>
-</map>

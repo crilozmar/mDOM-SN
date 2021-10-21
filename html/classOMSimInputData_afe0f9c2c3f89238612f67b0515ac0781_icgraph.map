@@ -1,7 +1,0 @@
-<map id="OMSimInputData::ParseToVector" name="OMSimInputData::ParseToVector">
-<area shape="rect" id="node2" href="$classOMSimInputData.html#acdc31321ca3ecc679bcd7e3e2276d9b8" title="OMSimInputData::Mie\l_Scattering" alt="" coords="272,5,424,47"/>
-<area shape="rect" id="node3" href="$classOMSimInputData.html#ab8c36c51d7a7a13f31bde709f0142645" title="OMSimInputData::Material\lFromFile" alt="" coords="472,35,649,76"/>
-<area shape="rect" id="node4" href="$classOMSimInputData.html#a39d2ea7e1818870b04bc3854b4187aca" title="OMSimInputData::ScannData\lDirectory" alt="" coords="697,35,893,76"/>
-<area shape="rect" id="node5" href="$classOMSimInputData.html#abbf92699e9f98101b871a6ad625ccc92" title="OMSimInputData::SearchFolders" alt="" coords="941,42,1156,69"/>
-<area shape="rect" id="node6" href="$classOMSimDetectorConstruction.html#a9e16ad5da3921b502473b303609caad0" title="OMSimDetectorConstruction\l::Construct" alt="" coords="1204,35,1395,76"/>
-</map>

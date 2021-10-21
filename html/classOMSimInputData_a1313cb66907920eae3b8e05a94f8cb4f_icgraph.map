@@ -1,6 +1,0 @@
-<map id="OMSimInputData::GetMaterial" name="OMSimInputData::GetMaterial">
-<area shape="rect" id="node2" href="$classOMSimDetectorConstruction.html#af674dc694896b82fd2b9089ccde14c69" title="OMSimDetectorConstruction\l::ConstructWorld" alt="" coords="252,5,443,47"/>
-<area shape="rect" id="node3" href="$classOMSimOMConstruction.html#a60234d4257445b63c608f93453b92ae2" title="OMSimOMConstruction\l::pDOMConstruction" alt="" coords="267,71,428,112"/>
-<area shape="rect" id="node5" href="$classOMSimOMConstruction.html#a625e762b3d94bf394caa6dc81d59cff4" title="OMSimOMConstruction\l::MultiPMTopticalModule" alt="" coords="264,136,431,177"/>
-<area shape="rect" id="node4" href="$classOMSimOMConstruction.html#ac94f2e26a7133b2649872af7dda5a1b9" title="OMSimOMConstruction\l::SelectModule" alt="" coords="491,104,652,145"/>
-</map>
