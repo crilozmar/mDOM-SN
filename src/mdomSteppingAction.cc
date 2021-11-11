@@ -119,8 +119,8 @@ void mdomSteppingAction::UserSteppingAction(const G4Step* aStep)
                             hitStat.QEprob = 1;
                         }
                         gAnalysisManager.hitStats.push_back(hitStat);
-                        aTrack->SetTrackStatus(fStopAndKill); // kills counted photon to prevent scattering and double-counting 
                     }
+		    aTrack->SetTrackStatus(fStopAndKill); // kills counted photon to prevent scattering and double-counting 
 		}
             }
         }
