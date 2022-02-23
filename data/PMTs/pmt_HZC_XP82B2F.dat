@@ -1,6 +1,7 @@
 {
    "jName": "pmt_HZC_XP82B2F",
-   "jShape": "jFullFit_SphereEllipse",
+   "jFrontalShape": "SphereEllipse",
+   "jBulbBackShape" :"FullFit",
    "jOuterShape": {
       "jTotalLenght": {
          "jValue": 94.5,

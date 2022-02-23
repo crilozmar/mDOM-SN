@@ -1,6 +1,7 @@
 {
    "jName": "pmt_Hamamatsu_4inch",
-   "jShape": "jOnlyFront_SphereEllipse",
+   "jFrontalShape": "SphereEllipse",
+   "jBulbBackShape" :"Simple",
    "jOuterShape": {
       "jTotalLenght": {
          "jValue": 106.0,

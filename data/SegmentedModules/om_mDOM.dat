@@ -32,7 +32,7 @@
       "jValue": 15,
       "jUnit": "mm"
    },
-   "lRefConeSheetThickness": {
+   "mRefConeSheetThickness": {
       "jValue": 0.5,
       "jUnit": "mm"
    },
@@ -48,14 +48,14 @@
       "jValue": 72.0,
       "jUnit": "deg"
    },
-   "lCylinderAngle": {
+   "jCylinderAngle": {
       "jValue": 2.8,
       "jUnit": "deg"
    },
    "jNrPolarPMTs": 4,
    "jNrEqPMTs": 8,
    "jPolEqPMTPhiPhase": {
-      "jValue": -22.5,
+      "jValue": 0,
       "jUnit": "deg"
    }
 }

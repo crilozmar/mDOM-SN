@@ -1,6 +1,7 @@
 {
    "jName": "pmt_Hamamatsu_R7081",
-   "jShape": "jOnlyFront_2Ellipses",
+   "jFrontalShape": "2Ellipses",
+   "jBulbBackShape" :"Simple",
    "jOuterShape": {
       "jTotalLenght": {
          "jValue": 245,

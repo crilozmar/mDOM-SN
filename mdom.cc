@@ -57,8 +57,8 @@ G4int	gDepthpos;
 
 G4double	gRefCone_angle;
 
-G4bool gropes;
-G4bool gmdomharness;
+G4bool gharness_ropes;
+
 G4double	gmdomseparation;
 G4int	gn_mDOMs;
 
@@ -440,8 +440,7 @@ int main(int argc,char *argv[])
 	struct arg_int	*holdercol 	= arg_int0("cC", "holdercol", "<n>", "\t\t\tcone color [BLACK, white (Lambertian R = 98%)]");
 	struct arg_int	*dom 		= arg_int0("mM", "om, dom", "<n>", "\t\t\tmodule type [MDOM, PDOM]");
 	struct arg_dbl  *cone_ang   = arg_dbl0(NULL, "cone_ang","<n>","\t\t\topening semi-angle of cone; (45 deg)");	
-	struct arg_int  *mdomharness   = arg_int0(NULL, "mdomharness","<n>","\t\t\tHarnes if =1, no harness = 0. Default = 1 [TO BE IMPLEMENTED]");	
-	struct arg_int  *ropes   = arg_int0(NULL, "ropes","<n>","\t\t\tRopes if =1, no ropes = 0. Default = 1 [TO BE IMPLEMENTED]");	
+	struct arg_int  *harness_ropes   = arg_int0(NULL, "harness_ropes","<n>","\t\t\tBuild complete harness and ropes if 1. Default = 1");	
 
 	struct arg_int  *environment= arg_int0("eE", "environment","<n>","\t\tmedium in which the setup is emmersed [AIR, ice, spice]");
 	struct arg_file *outputfile	= arg_file0("oO","output","<file.txt>","\t\tfilename for hits data");
@@ -488,8 +487,7 @@ int main(int argc,char *argv[])
 						holdercol,
 						dom,
 						cone_ang,
-						mdomharness,
-						ropes,
+						harness_ropes,
 						
 						environment,
 						outputfile,
@@ -533,7 +531,7 @@ int main(int argc,char *argv[])
 	gunfile->filename[0] = "mdom.gps";
 	pmt->ival[0] = 0;			// use new R12199 version as default
 	
-	mdomseparation-> dval[0] = 2.4; //m
+	mdomseparation-> dval[0] = 3.; //m
 	n_mDOMs->ival[0] = 1;
 	
 	glass->ival[0] = 0;	// use VITROVEX as default
@@ -544,9 +542,8 @@ int main(int argc,char *argv[])
 	
 	cone_ang->dval[0] = 51.0; // [degrees]	
 	
-	mdomharness->ival[0] = 0;
-	ropes->ival[0]=0;
-	
+	harness_ropes->ival[0] = 1;
+
 	//outputfile->filename[0] = "../output/mdom_testoutput_scan_angular.txt";
 	hittype->ival[0] = 1;		// store information on collective hits as default
 	SNmeanEnergy->dval[0] = 0.0; //<0.1 means do not take this parameter into account
@@ -630,8 +627,7 @@ int main(int argc,char *argv[])
 	gSNmeanEnergy = SNmeanEnergy->dval[0];
 	gfixalpha = alpha->dval[0];
 
-	if (mdomharness->ival[0]==1) gmdomharness = true; else gmdomharness = false;
-	if (ropes->ival[0]==1) gropes = true; else gropes = false;
+	if (harness_ropes->ival[0]==1) gharness_ropes = true; else gharness_ropes = false;
 	
 	if ((Sun_e->count>0) || (Sun_mu->count>0) || (Sun_tau->count>0) ){
 		if ((Sun_e->count>0) && ((Sun_mu->count>0) || (Sun_tau->count>0))) {

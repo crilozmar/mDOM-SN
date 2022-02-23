@@ -42,37 +42,15 @@ mdomSNTools::~mdomSNTools(){
 }
 
 bool mdomSNTools::CheckVolumeFormDOMs(G4ThreeVector position){
-	// check whether the given position is inside one of the modules
-	// Translation of frame of reference and then check R in spherical coordinates. Module will be assume to be spherical with Rmin
-	//It returns true when the particle is inside the module!
-	//G4cout << position.getX()/m << " "<<position.getY()/m << " "<< position.getZ()/m <<G4endl;
-	//G4ThreeVector ProblematicPoint = G4ThreeVector(-161.517*mm,85.6623*mm,22.7964*mm);
-  	aNavigator->LocateGlobalPointAndSetup(position);
-  	G4TouchableHistoryHandle aTouchable = aNavigator->CreateTouchableHistoryHandle();
-	G4int HistoryDepth = aTouchable->GetHistoryDepth();
-	//G4cout << HistoryDepth << G4endl;
-	if (HistoryDepth > 0) {return true;}/* 
-	for ( int j=0; j<(G4int)mdompos.size(); j++ ) {
-		// First part: check sphere volume
-		G4ThreeVector thismodulepos;
-		thismodulepos = G4ThreeVector(0*m,0*m,mdompos[j]);
-		G4ThreeVector translation = thismodulepos - position ;
-		G4double distance = translation.getR();
-		if (distance < Rmin) {
-			return true;
-		}
-		//Second: check holder volume, simulated as cylinder
-		// Harness has approximately this size... there is no global variables for it
-		G4double radius = 200 * mm;
-		G4double height = 23*mm;
-		G4double Rho = pow(pow(translation.getX(),2)+pow(translation.getY(),2),1./2.);
-		G4double z = abs(translation.getZ());
-		//G4cout << Rho/m << " " << radius/m << " " << z/m << " " << height/m << G4endl;
-		if ( (Rho < radius) && (z < height) ) {
-			return true;
-		}
-	}*/
-	return false;
+    // check whether the given position is inside one of the modules
+    // Translation of frame of reference and then check R in spherical coordinates. Module will be assume to be spherical with Rmin
+    //It returns TRUE when the particle is inside the module!
+    aNavigator->LocateGlobalPointAndSetup(position);
+    G4TouchableHistoryHandle aTouchable = aNavigator->CreateTouchableHistoryHandle();
+    G4int HistoryDepth = aTouchable->GetHistoryDepth();
+    //G4cout << HistoryDepth << G4endl;
+    if (HistoryDepth > 0) {return true;}
+    return false;
 }
 
 void mdomSNTools::RandomPosition(G4ThreeVector& Position) {
@@ -90,21 +68,22 @@ void mdomSNTools::RandomPosition(G4ThreeVector& Position) {
   R2 = 0*m;
   G4bool boolparameter = true;
   while ( ( boolparameter==true ) || (R3 >= Rmax) || (R2 >= Rmax2)) {
-	G4double posornegX = 1;
-	if (G4UniformRand()<0.5) { posornegX = -1;}
-		G4double posornegY = 1;
-	if (G4UniformRand()<0.5) { posornegY = -1;}
-		G4double posornegZ = 1;
-	if (G4UniformRand()<0.5) { posornegZ = -1;}
-	posz = posornegZ*(G4UniformRand()*gHeight);
-	posx = posornegX*(G4UniformRand()*gRadius);
-	posy = posornegY*(G4UniformRand()*gRadius);
-	tempPosition = G4ThreeVector(posx,posy,posz);
-	R3 = pow(pow(tempPosition[0],2)+pow(tempPosition[1],2)+pow(tempPosition[2],2),1./2.);
-	R2 = pow(pow(tempPosition[0],2)+pow(tempPosition[1],2),1./2.);
-	boolparameter = CheckVolumeFormDOMs(tempPosition);
+    G4double posornegX = 1;
+    if (G4UniformRand()<0.5) { posornegX = -1;}
+            G4double posornegY = 1;
+    if (G4UniformRand()<0.5) { posornegY = -1;}
+            G4double posornegZ = 1;
+    if (G4UniformRand()<0.5) { posornegZ = -1;}
+    posz = posornegZ*(G4UniformRand()*gHeight);
+    posx = posornegX*(G4UniformRand()*gRadius);
+    posy = posornegY*(G4UniformRand()*gRadius);
+    tempPosition = G4ThreeVector(posx,posy,posz);
+    R3 = pow(pow(tempPosition[0],2)+pow(tempPosition[1],2)+pow(tempPosition[2],2),1./2.);
+    R2 = pow(pow(tempPosition[0],2)+pow(tempPosition[1],2),1./2.);
+    boolparameter = CheckVolumeFormDOMs(tempPosition);
+    //G4cout << tempPosition/m << boolparameter << G4endl;
   } 
-	Position = G4ThreeVector(tempPosition);
+    Position = G4ThreeVector(tempPosition);
 }
 
 

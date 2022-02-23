@@ -20,7 +20,7 @@
 
 #include "OMSimInputData.hh"
 #include "OMSimPMTConstruction.hh"
-#include "OMSimOMConstruction.hh"
+#include "OMSimMDOM.hh"
 #include "G4Navigator.hh"
 
 
@@ -31,6 +31,7 @@ extern G4int	gn_mDOMs;
 extern G4double gRadius; 
 extern G4double gHeight; 
 extern G4Navigator* aNavigator;
+extern G4bool gharness_ropes;
 
 
 OMSimDetectorConstruction::OMSimDetectorConstruction()
@@ -42,9 +43,8 @@ OMSimDetectorConstruction::~OMSimDetectorConstruction()
 
 /**
  * Construct the world volume
- * @param pData Instance of OMSimInputData for getting materials
  */
-void OMSimDetectorConstruction::ConstructWorld(OMSimInputData* pData){
+void OMSimDetectorConstruction::ConstructWorld(){
     G4double innerRadiusOfTheTube = 0.*cm;
     G4double startAngleOfTheTube = 0.*deg;
     G4double spanningAngleOfTheTube = 360.*deg;
@@ -59,7 +59,7 @@ void OMSimDetectorConstruction::ConstructWorld(OMSimInputData* pData){
                  spanningAngleOfTheTube); 
   
     
-    mWorldLogical = new G4LogicalVolume(mWorldSolid, pData->GetMaterial("argWorld"), "World_log", 0, 0, 0);
+    mWorldLogical = new G4LogicalVolume(mWorldSolid, mData->GetMaterial("argWorld"), "World_log", 0, 0, 0);
     //mWorldLogical->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4VisAttributes* World_vis= new G4VisAttributes(G4Colour(0.45,0.5,0.35,0.2));
     mWorldLogical->SetVisAttributes(World_vis);
@@ -69,22 +69,21 @@ void OMSimDetectorConstruction::ConstructWorld(OMSimInputData* pData){
 }
 
 /**
- * Construct all solids needed for your study. Call OMSimOMConstruction for simulations with optical modules
+ * Construct all solids needed for your study. Call OMSimXConstruction for simulations with optical module X
  * and OMSimPMTConstruction for simulations with only PMTs.
  * @return World physical for the main
  */
 G4VPhysicalVolume* OMSimDetectorConstruction::Construct() {
     
-    OMSimInputData* lData = new OMSimInputData();
-    lData->SearchFolders();
+    mData = new OMSimInputData();
+    mData->SearchFolders();
     
-    ConstructWorld(lData);
+    ConstructWorld();
     
-    OMSimOMConstruction* lOpticalModule = new OMSimOMConstruction(lData);
-    lOpticalModule->SelectModule("argOM");
+    mOpticalModule = new mDOM(mData, gharness_ropes);
     
     if (gn_mDOMs <= 1) {
-        lOpticalModule->PlaceIt(G4ThreeVector(0,0,0), new G4RotationMatrix(), mWorldLogical, false, "module_phys_0");
+        mOpticalModule->PlaceIt(G4ThreeVector(0,0,0), G4RotationMatrix(), mWorldLogical,  "module_phys_0");
     } else {
         std::stringstream moduleconverter;
         for (unsigned int k = 0; k < gn_mDOMs; k++){
@@ -96,7 +95,7 @@ G4VPhysicalVolume* OMSimDetectorConstruction::Construct() {
             } else {
                     zpos = gmdomseparation*(gn_mDOMs/2-k);
             }
-            lOpticalModule->PlaceIt(G4ThreeVector(0,0,zpos), new G4RotationMatrix(), mWorldLogical, false, moduleconverter.str());
+            mOpticalModule->PlaceIt(G4ThreeVector(0,0,zpos), G4RotationMatrix(), mWorldLogical,  moduleconverter.str());
         }
     }
     

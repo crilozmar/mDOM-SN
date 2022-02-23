@@ -1,6 +1,7 @@
 {
    "jName": "pmt_ETEL_9320KFL-KFB",
-   "jShape": "jOnlyFront_SphereEllipse",
+   "jFrontalShape": "SphereEllipse",
+   "jBulbBackShape" :"Simple",
    "jOuterShape": {
       "jTotalLenght": {
          "jValue": 95.0,

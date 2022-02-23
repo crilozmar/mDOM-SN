@@ -1,5 +1,5 @@
 /** @file mdomPrimaryGeneratorAction2.cc
- *  @brief Primary generator. Produces electrons coming from enes of solar neutrinos
+ *  @brief Primary generator. Produces electrons coming from ENES of solar neutrinos (OUTDATED CODE!)
  * 
  *  @author Cristian Jesus Lozano Mariscal (c.lozano@wwu.de)
  * 

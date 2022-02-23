@@ -36,7 +36,7 @@
       "jValue": 15,
       "jUnit": "mm"
    },
-   "lRefConeSheetThickness": {
+   "mRefConeSheetThickness": {
       "jValue": 0.5,
       "jUnit": "mm"
    },
