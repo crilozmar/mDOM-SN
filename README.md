@@ -1,4 +1,8 @@
-Warn! This project is discontinued since it won't ever be merge into the main branch. Use https://github.com/crilozmar/mDOM_IceColumn instead
+# Warn! This project is discontinued since it won't ever be merged into the main branch. Use https://github.com/crilozmar/mDOM_IceColumn instead
+
+
+
+
 
 # mDOM-SN
 mDOM - SNe and solar neutrinos
