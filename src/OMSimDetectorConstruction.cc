@@ -17,12 +17,10 @@
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4Transform3D.hh"
-
+#include "OMSimLogger.hh"
 #include "OMSimInputData.hh"
 #include "OMSimPMTConstruction.hh"
-#include "OMSimMDOM.hh"
 #include "G4Navigator.hh"
-
 
 
 extern G4double gworldsize;
@@ -32,6 +30,7 @@ extern G4double gRadius;
 extern G4double gHeight; 
 extern G4Navigator* aNavigator;
 extern G4bool gharness_ropes;
+extern G4int gDOM;
 
 
 OMSimDetectorConstruction::OMSimDetectorConstruction()
@@ -80,8 +79,17 @@ G4VPhysicalVolume* OMSimDetectorConstruction::Construct() {
     
     ConstructWorld();
     
-    mOpticalModule = new mDOM(mData, gharness_ropes);
-    
+    if (gDOM == 0) {
+        mOpticalModule = new mDOM(mData, gharness_ropes);
+    } else if (gDOM == 1) {
+        mOpticalModule = new pDOM(mData, gharness_ropes);
+    } else if (gDOM == 2) {
+        mOpticalModule = new LOM16(mData, gharness_ropes);
+    } else {
+        G4String mssg = "--dom parameter only defined for mDOM (0), pDOM (1) or LOM (2), " + std::to_string(gDOM) +" given";
+        critical(mssg);
+    }
+
     if (gn_mDOMs <= 1) {
         mOpticalModule->PlaceIt(G4ThreeVector(0,0,0), G4RotationMatrix(), mWorldLogical,  "module_phys_0");
     } else {

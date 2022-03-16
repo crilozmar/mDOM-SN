@@ -243,7 +243,6 @@ G4double mdomPrimaryGeneratorAction2::TotalCrossSection(G4double energy) {
   G4double Ee = energy+mp-mn;
   G4double pec = pow((pow(Ee,2)-pow(me,2)),1./2.);
   G4double sigma = 1./4.*sigma0*(1.+3.*pow(consg,2))*(1.+deltaWM)*Ee*pec/pow(me,2);
-  //G4cout << "CRRROOOOOOOOSSSSSEEEEECCCCTTTIIIIIOOOOONNNN   " << sigma/(m*m) << " of energy "<< energy/MeV << G4endl;
   return sigma;
 }
 
