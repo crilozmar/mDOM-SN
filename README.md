@@ -49,13 +49,15 @@ Both classes work the same way:
   * Then run it. "./mdom --help" would list the input parameters that are available (Some input parameters are old/not used anymore. #TODO: Clean it)
   * In order to run SN simulations, you should write something like the following:
   
-  ** ./mdom --QE --SNgun 2 --depthpos 88 --nmdoms 1 --SN 4 -w 20 -n 10000 -o youroutputfilepath.txt
+  ** ./mdom --harness_ropes 1 --QE --SNgun 2 --depthpos 88 --nmdoms 1 --SN 4 -w 20 -n 10000 -o youroutputfilepath.txt
   
   *** --QE: Quantum effiency ON.
   
   *** --depthpos X: select a position from the tabulated depths (up to 110). Corresponding depth and absorption/scattering lenghts can be seen directly from the vector in mdomDetectorConstruction.cc around lines 100 (#TODO: Write this into separated files)
   
   *** --nmdoms X: how many mdoms do you want to simulate. Centered by default.
+ 
+  *** --harness_ropes 1 : include harness, ropes and cables for mDOM modules (0 for no harness, default 1)
   
   *** -n X: number of particles to simulate
   
@@ -95,6 +97,3 @@ The outputs are written by the mdomAnalysisManager class. Lets say the output fi
  
  Please report bugs to c.lozano@wwu.de / cjlmariscal@icecube.wisc.edu
  
- # TODO list:
- * Include QE input files using OMSimInputData as the rest of input files.
- * Include harness, ropes and external cables.
