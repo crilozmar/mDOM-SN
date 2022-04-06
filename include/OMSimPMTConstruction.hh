@@ -10,6 +10,7 @@
 #include "G4SubtractionSolid.hh"
 #include "G4PVPlacement.hh"
 #include "OMSimInputData.hh"
+#include "G4Tubs.hh"
 #include <tuple>
 #include <map>
 namespace pt = boost::property_tree;
@@ -48,8 +49,10 @@ private:
         G4UnionSolid *mGlassInside;
         G4LogicalVolume *mPMTlogical;
         G4bool mSimpleBulb;
+        G4double mMissingTubeLength ;
         G4PVPlacement *mVacuumPhotocathodePlacement;
         G4SubtractionSolid *mVacuumPhotocathodeSolid;
+        G4Tubs *mBulkSolid;
         G4PVPlacement *mVacuumTubePlacement;
 
         bool mCheckOverlaps = true;

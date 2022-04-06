@@ -89,16 +89,34 @@ void OMSimPMTConstruction::PMT::ConstructIt()
 
     else
     {
+        /*
         G4LogicalVolume *lTubeVacuum = new G4LogicalVolume(mGlassInside, mData->GetMaterial("Ri_Vacuum"), "PMTvacuum");
         G4LogicalVolume *lPhotocathode = new G4LogicalVolume(mVacuumPhotocathodeSolid, mData->GetMaterial("RiAbs_Photocathode"), "Photocathode");
 
         new G4PVPlacement(0, G4ThreeVector(0, 0, 0), lTubeVacuum, "VacuumTube", mPMTlogical, false, 0, mCheckOverlaps);
         new G4PVPlacement(0, G4ThreeVector(0, 0, 0), lPhotocathode, "VacuumPhoto", lTubeVacuum, false, 0, mCheckOverlaps);
+        */
+        G4SubtractionSolid *lVacuumTubeSolid_BackBulb = new G4SubtractionSolid("Vacuum Tube solid", mGlassInside, mVacuumPhotocathodeSolid, 0, G4ThreeVector(0, 0, 0));
+        G4SubtractionSolid *lVacuumTubeSolid = new G4SubtractionSolid("Vacuum Tube solid", mBulkSolid, mVacuumPhotocathodeSolid, 0, G4ThreeVector(0, 0, mMissingTubeLength));
+        G4SubtractionSolid *lBackBulbSolid = new G4SubtractionSolid("Vacuum Tube solid", lVacuumTubeSolid_BackBulb, lVacuumTubeSolid, 0, G4ThreeVector(0, 0, -mMissingTubeLength));
 
-        CathodeBackShield(lTubeVacuum);
+        G4LogicalVolume *lVacuumPhotocathodeLogical = new G4LogicalVolume(mVacuumPhotocathodeSolid, mData->GetMaterial("RiAbs_Photocathode"), "Photocathode area vacuum");
+        G4LogicalVolume *lVacuumTubeLogical = new G4LogicalVolume(lVacuumTubeSolid, mData->GetMaterial("NoOptic_Absorber"), "Fully absorber"); //I guess this is not trully fully absorber though...
+        G4LogicalVolume *lBackBulbLogical = new G4LogicalVolume(lBackBulbSolid, mData->GetMaterial("RiAbs_Glass_Tube"), "Reflective mirror");
 
-        lPhotocathode->SetVisAttributes(mPhotocathodeVis);
-        lTubeVacuum->SetVisAttributes(mInvisibleVis);
+        mVacuumPhotocathodePlacement = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), lVacuumPhotocathodeLogical, "Photocathode", mPMTlogical, false, 0, mCheckOverlaps);
+        mVacuumTubePlacement = new G4PVPlacement(0, G4ThreeVector(0, 0, -mMissingTubeLength), lVacuumTubeLogical, "BackTube", mPMTlogical, false, 0, mCheckOverlaps);
+        
+        mVacuumTubePlacement = new G4PVPlacement(0, G4ThreeVector(0, 0, 0), lBackBulbLogical, "BackBulb", mPMTlogical, false, 0, mCheckOverlaps);
+        
+        CathodeBackShield(lBackBulbLogical);
+
+        lVacuumPhotocathodeLogical->SetVisAttributes(mPhotocathodeVis);
+        const G4VisAttributes *lBackBulbVis = new G4VisAttributes(G4Colour(0.0, 0.0, 0.0, 1));
+        const G4VisAttributes *lBackTubeVis = new G4VisAttributes(G4Colour(0.2, 0.2, 0.2, 1));
+        lVacuumTubeLogical->SetVisAttributes(lBackTubeVis);
+        lBackBulbLogical->SetVisAttributes(lBackBulbVis);
+
     }
 }
 
@@ -119,6 +137,9 @@ void OMSimPMTConstruction::PMT::PlaceIt(G4ThreeVector pPosition, G4RotationMatri
         new G4LogicalBorderSurface("Photocathode_in", lPMTPhysical, mVacuumPhotocathodePlacement, Photocathode_opsurf);                  //*/
         new G4LogicalBorderSurface("PMT_mirrorglass", mVacuumTubePlacement, lPMTPhysical, mData->GetOpticalSurface("Refl_100polished")); //*/
         new G4LogicalBorderSurface("PMT_mirrorglass", lPMTPhysical, mVacuumTubePlacement, mData->GetOpticalSurface("Refl_100polished")); //*/
+    } else {
+        new G4LogicalBorderSurface("PMT_mirrorglass", mVacuumTubePlacement, lPMTPhysical, mData->GetOpticalSurface("Refl_100polished")); //*/
+        new G4LogicalBorderSurface("PMT_mirrorglass", lPMTPhysical, mVacuumTubePlacement, mData->GetOpticalSurface("Refl_100polished")); //*/
     }
 }
 /**
@@ -136,6 +157,9 @@ void OMSimPMTConstruction::PMT::PlaceIt(G4Transform3D pTransform, G4LogicalVolum
         new G4LogicalBorderSurface("Photocathode_in", lPMTPhysical, mVacuumPhotocathodePlacement, Photocathode_opsurf);                  //*/
         new G4LogicalBorderSurface("PMT_mirrorglass", mVacuumTubePlacement, lPMTPhysical, mData->GetOpticalSurface("Refl_100polished")); //*/
         new G4LogicalBorderSurface("PMT_mirrorglass", lPMTPhysical, mVacuumTubePlacement, mData->GetOpticalSurface("Refl_100polished")); //*/
+    } else {
+        new G4LogicalBorderSurface("PMT_mirrorglass", mVacuumTubePlacement, lPMTPhysical, mData->GetOpticalSurface("Refl_PMTSideMirror")); //*/
+        new G4LogicalBorderSurface("PMT_mirrorglass", lPMTPhysical, mVacuumTubePlacement, mData->GetOpticalSurface("Refl_PMTSideMirror")); //*/
     }
 }
 
@@ -183,7 +207,9 @@ std::tuple<G4UnionSolid *, G4SubtractionSolid *> OMSimPMTConstruction::PMT::Bulb
     G4Tubs *lBulkSolid = new G4Tubs("Bulb bulk solid", 0.0, 0.5 * mTubeWidth, lMissingTubeLength, 0, 2 * CLHEP::pi);
     if (pSide == "jOuterShape")
         mPMTCenterToTip = lFrontToEllipse_y;
-
+    if (pSide == "jInnerShape")
+        mBulkSolid = lBulkSolid;
+        mMissingTubeLength = lMissingTubeLength;
     lBulbSolid = new G4UnionSolid("Bulb tube solid", lBulbSolid, lBulkSolid, 0, G4ThreeVector(0, 0, -lMissingTubeLength));
     return std::make_tuple(lBulbSolid, lPhotocathodeSide);
 }
