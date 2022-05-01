@@ -221,7 +221,7 @@ G4double NumberOfTargets(G4int targetPerMolecule) {
 
 void MakeEnergyDistribution(G4double Emean, G4double alpha, G4int nPoints, std::vector<G4double>& x, std::vector<G4double>& f)
 {
-  G4double min = 0.; G4double max = 50.; 
+  G4double min = 0.; G4double max = 80.; 
   G4double delta = (max-min)/G4double(nPoints-1);
   x.resize(nPoints); f.resize(nPoints);
 
