@@ -89,6 +89,7 @@ void OMSimPMTConstruction::PMT::ConstructIt()
 
     else
     {
+         
         /*
         G4LogicalVolume *lTubeVacuum = new G4LogicalVolume(mGlassInside, mData->GetMaterial("Ri_Vacuum"), "PMTvacuum");
         G4LogicalVolume *lPhotocathode = new G4LogicalVolume(mVacuumPhotocathodeSolid, mData->GetMaterial("RiAbs_Photocathode"), "Photocathode");
@@ -114,8 +115,14 @@ void OMSimPMTConstruction::PMT::ConstructIt()
         lVacuumPhotocathodeLogical->SetVisAttributes(mPhotocathodeVis);
         const G4VisAttributes *lBackBulbVis = new G4VisAttributes(G4Colour(0.0, 0.0, 0.0, 1));
         const G4VisAttributes *lBackTubeVis = new G4VisAttributes(G4Colour(0.2, 0.2, 0.2, 1));
+        
+        //the visualization does not work for mDOM when using this
+        
+        //lVacuumTubeLogical->SetVisAttributes(mInvisibleVis);
+        lBackBulbLogical->SetVisAttributes(mInvisibleVis);
+        
         lVacuumTubeLogical->SetVisAttributes(lBackTubeVis);
-        lBackBulbLogical->SetVisAttributes(lBackBulbVis);
+        //lBackBulbLogical->SetVisAttributes(lBackBulbVis);
 
     }
 }

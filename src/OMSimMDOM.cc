@@ -225,7 +225,7 @@ void mDOM::Construction()
     lRefconeEqUpCutLogical->SetVisAttributes(mAluVis);
     lRefconeEqLoCutLogical->SetVisAttributes(mAluVis);
     lLEDHoleAirLogical->SetVisAttributes(mInvisibleVis);
-	lLEDLogical->SetVisAttributes(mLEDvis); 
+    lLEDLogical->SetVisAttributes(mLEDvis); 
     lLEDGlassTopLogical->SetVisAttributes(mGlassVis); 
 }
 
